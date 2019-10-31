@@ -1,6 +1,6 @@
-# Cybersecurity notes
+# Cybersecurity notes Spring 2019
 
-These notes concern the whole content of the _cybersecurity_ master course hold by Professor G. Dini, Ing. P. Perazzo and Ing. M. La Manna, Master degree in Computer Engineering, University of Pisa.
+These notes concern the whole content of the _cybersecurity_ master course held by Professor G. Dini, Ing. P. Perazzo and Ing. M. La Manna, Master degree in Computer Engineering, University of Pisa.
 
 ## Build it yourself
 
@@ -14,3 +14,8 @@ Make it
 make
 ```
 
+Find pdf file
+
+```
+cd dist/
+```
