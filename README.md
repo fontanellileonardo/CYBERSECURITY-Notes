@@ -19,5 +19,5 @@ make
 Find pdf file
 
 ```
-cd dist/
+ls dist/
 ```
