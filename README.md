@@ -4,6 +4,8 @@ These notes concern the whole content of the _cybersecurity_ master course held 
 
 ## Build it yourself
 
+Clone the repo
+
 ```
 git clone https://github.com/francescobarbarulo/cyber-brev.git && cd cyber-brev
 ```
