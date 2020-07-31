@@ -56,63 +56,95 @@ I wish you good luck!}
 
 \section{Shannon}
 \subsection{Perfect secrecy}
-A cipher has perfect secrecy if and only if:
+Uno schema di criptazione (E, D) ha la Perfect Secrecy se
 $$ \forall p \in P, c \in C : Pr(P = p | C = c) = Pr(P = p) $$
-
-In physical terms, an adversary that knows c can not say anything about the distribution of p because the distribution of P remains the same.
-
-\subsection{Theorem}
-A perfect cipher has $ |K| \geq |P| $.
-The proof is made by contradiction. Assume that:
+In pratica, conoscere il cyphertext (associato al plaintext) non aumenta le probabilità all'avversario di risalire a p, perché la distribuzione di P rimane la stessa.
+\subsection{Teorema di Shannon}
+Un cifrario perfetto ha $ |K| \geq |P| $.
+Ovvero, il numero delle chiavi non deve mai essere più piccolo del numero di plaintext producibili. \\
+La dimostrazione viene fatta per assurdo. Assumendo che:
 \begin{enumerate}
 	\item $|K| < |P|$
-	\item $|C| \geq |P|$ because E must be invertible
-	\item $|C| > |K|$ by 1. and 2.
+	\item $|C| \geq |P|$ perché la funzione E deve essere invertibile. (due plaintext non possono produrre lo stesso chipertext)
+	\item $|C| > |K|$ per le conseguenze del punto 1 e 2.
 \end{enumerate}
-Let's choose $p_0 : Pr(P = p_0) \neq 0$. However, by 3, there must exists at least $c_0$ that is not the image of $p_0$. This leads to:
+Scegliendo $p_0 : Pr(P = p_0) \neq 0$. Questo $p_0$ potrà produrre R ciphertext, uno per ognuna delle R chiavi.
+R è uguale a $|K|$, ma tuttavia, per il punto 3, deve esistere un $c_0$ che non è l'immagine di $p_0$. 
+Questo porta a:
 $$ c_0 : Pr(P = p_0 | C = c_0) = 0 $$ 
-The two probabilities are different and it does not respect the Shannon definition.
+Le due probabilità sono differenti e non rispettano la \textit{legge di Shannon}
 
 \section{One-Time Pad}
 \begin{itemize}
-	\item message $m \in \{0,1\}^t$
-	\item key $k \in \{0,1\}^t$
-	\item $E(k, m) = m \oplus k$
-	\item $D(k, c) = c \oplus k$
+	\item messaggio $m \in \{0,1\}^t$. Messaggio in chiaro di t bits.
+	\item chiave $k \in \{0,1\}^t$. Chiave di t bits scelta in maniera casuale (truly randomly chosen)
+	\item \textbf{Funzione di Encryption: }$E(k, m) = m \oplus k$
+	\item \textbf{Funzione di Decryption: }$D(k, c) = c \oplus k$
 \end{itemize}
 
-\subsection{Properties}
-Consistency property:
-
-$$ c \oplus k = (m \oplus k) \oplus k = m$$
-
-OTP has a perfect secrecy if and only if:
+\subsection{Proprietà}
 \begin{itemize}
-	\item $\forall m, m' \in M : len(m) = len(m')$
-	\item $\forall m \in M : Pr(M = m) \neq 0$
-	\item $k \xleftarrow{random} K$ and used just once
+	\item \textbf{Proprietà di consistenza:} $$ c \oplus k = (m \oplus k) \oplus k = m$$
+	\item \textbf{OTP è un cipher perfetto se:}
+	\begin{itemize}
+		\item $\forall m, m' \in M : len(m) = len(m')$. Ovvero, tutti i messaggi hanno la stessa lunghezza.
+		\item $\forall m \in M : Pr(M = m) \neq 0$
+		\item $k \xleftarrow{random} K$. Ovvero, k è scelta randomicamente ed è utilizzata solo una volta
+	\end{itemize}
 \end{itemize}
 
-\subsection{Property of XOR}
+\subsection{Proprietà dello XOR}
 \begin{itemize}
-	\item Let $Y$ a random variable on $\{0,1\}^n$
-	\item Let $X$ an \textbf{independent uniform} random variable on $\{0,1\}^n$
+	\item Sia $Y$ una variabile random su $\{0,1\}^n$
+	\item Sia $X$ variabile random \textbf{uniforme e indipendente da Y} su $\{0,1\}^n$
 \end{itemize}
-$\Rightarrow Z = Y \oplus X$ is \textbf{uniform} on $\{0,1\}^n$ 
+Allora, si può dimostrare che:
+$\Rightarrow Z = Y \oplus X$ è una variabile \textbf{uniforme} su $\{0,1\}^n$ 
 
-\paragraph{Proof}
+\paragraph{Dimostrazione}
 \begin{align}
 P(Z = 0) &= P(X = 0 \land Y = 0) \lor P(X = 1 \land Y = 1) \notag\\
 & = P(X = 0) \cdot P(Y = 0) + P(X = 1) \cdot P(Y = 1) \notag\\
 & = 0.5Y_0 + 0.5Y_1 = 0.5(Y_0 + Y_1) = 0.5 \notag
 \end{align}
 
-\subsection{Malleability problem}
-An adversary sees $c = m \oplus k$. Then, it could generate $c' = c \oplus r$.
-At the receiver:
-$$ m' = c' \oplus k = (c \oplus r) \oplus k = ((m \oplus k) \oplus r) \oplus k = m \oplus r $$
+\subsection{Proprietà di OTP}
+\begin{itemize}
+	\item \textbf{Vantaggi:}
+	\begin{enumerate}
+		\item È unconditionally secure, cioè non può essere violato anche se l'avversario ha potenza computazionale infinita.
+		\item Le operazioni di criptazione e decriptazione sono molto veloci
+	\end{enumerate}
+	\item \textbf{Svantaggi:}
+	\begin{enumerate}
+		\item Le chiavi sono molto lunghe
+		\item Ogni chiave va utilizzata una sola volta
+		\item È malleabile
+	\end{enumerate}
+\end{itemize}
 
-The perturbation $r = m \oplus m'$.
+\subsection{Problemi di OTP}
+\begin{enumerate}
+	\item Se uso la stessa chiave due volte, avrò che: $c_1 = p_1 \oplus k$, $c_2 = p_2 \oplus k$
+	Se l'avversario prova a calcolare $c_1 \oplus c_2 = p_1 \oplus k \oplus p_2 \oplus k = p_1 \oplus p2$
+	potrà avere, quindi, informazioni sul plaintext (violando Shannon). \\
+	Il caso più significativo è quello di 2 (o più) plaintext che hanno parti di testo in comune:
+	in tal caso, l'operazione di \textit{XOR} tra i due ciphertext prodotti risulterà essere 0.
+	L'avversario è quindi in grado di ottenere informazioni sui due plaintext.
+	\item Supponendo che l'avversario conosca una coppia c, p (attacco known-plaintext), in tal caso potrà calcolare:
+	$k = c \oplus p$. Se la chiave \textit{k} (che è stata compromessa), viene riutilizzata, allora l'avversario sarà in grado 
+	di decifrare il nuovo ciphertext. Questo è il secondo motivo per cui non bisogna riutilizzare le chiavi.
+	\item L'algoritmo è malleabile (come visto precedentemente): l'avversario può manipolare il ciphertext \textit{c}
+	in maniera efficace al fine di modificare il plaintext associato. Si tratta di un problema di integrità piuttosto che
+	di confidenzialità. \\
+	Un avversario vede $c = m \oplus k$. Quindi, potrebbe generare $c' = c \oplus r$.
+	Al ricevente:
+	$$ m' = c' \oplus k = (c \oplus r) \oplus k = ((m \oplus k) \oplus r) \oplus k = m \oplus r $$
+	La perturbazione $r = m \oplus m'$. \\
+	L'avversario ha, quindi, introdotto una modifica controllata \textit{r} al plaintext senza che
+	il destinatario se ne sia accorto. \\
+	Come risolvere il problema delle chiavi troppo lunghe? 
+\end{enumerate}
 
 \section{Stream ciphers}
 \begin{itemize}
