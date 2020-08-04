@@ -208,22 +208,33 @@ L'attacco \textbf{Known-plaintext attack}, ha una complessità di $O(2^{17})$: s
 
 \subsection{802.11b WEP}
 \begin{itemize}
-	\item pre-shared $k$
-	\item $iv$ on $\{0,1\}^{24}$ written in the standard, required to be fresh
-	\item $ks = RC4(k||iv)$, where RC4 is the PRNG
+	\item pre-condivisa $k$
+	\item $IV$ su $\{0,1\}^{24}$ scritto nello standard, richiesto che sia "fresco"
+	\item $ks = RC4(k||iv)$, dove RC4 è il PRNG
 	\item $m = m||crc(m)$
 	\item $c = m \oplus ks$
 \end{itemize}
-
+Come detto, ogni volta deve essere generato un nuovo vettore di inizializzazione (IV).
+Come generarlo? Con un contatore (inizializzato a zero), oppure si può generare una sequenza random con un generatore. 
+Lo standard non dice nulla riguardo a come generare il vettore, dice soltanto che $sizeof(IV) = 24 bits$. 
+Questo ha una forte implicazione: dopo $2^24$ frames, il vettore di inizializzazione ricomincia da capo, quindi il keystream tende ad essere ripetuto. 
+Questo comportamento deve essere evitato in crittografia.
 \paragraph{Drawbacks}
 \begin{enumerate}[label=\alph*.]
-	\item $ks$ only depends on $iv$. After $2^{24}$ frames it repeats ciclically and $ks$ is reused
-	\item use of CRC instead of hash function cheated by perturbation
-	\item use of related keys $k||iv, iv = 0, 1, 2, ..., 2^{24}-1$. RC4 is good unless related keys are used.
+	\item $ks$ dipende soltanto da $IV$. Come detto, dopo $2^{24}$ frames si ripete ciclicamente e $ks$ è riutilizzato.
+	\item l'utilizzo di CRC, invece di una funzione hash imbrogliata da una perturbazione.
+	\item utilizzo di "related keys" $k||iv, iv = 0, 1, 2, ..., 2^{24}-1$. RC4 è buono a meno che non vengano utilizzate chiavi "related".
 \end{enumerate}
 
 \section{Block ciphers}
-Plaintext divided in blocks of fixed length $n$:
+Non lavoriamo più bit a bit, ma su blocchi di bit. Si può, in tal modo, implementare un cipher mantenendo la perfect secrecy?
+La funzione E ora diventa una funzione che ha lo stesso dominio di \textit{p} ed è invertibile (mappa, quindi, ogni blocco unicamente ad un altro blocco).
+Tutti i possibili blocchi di \textit{n} bit sono $2^{n}$. Per avere un cipher perfetto dobbiamo implementare tutte le permutazioni dei blocchi, da cui il numero di chiavi è uguale a $2^{n}!$.
+La lunghezza in bit della chiave varia, quindi, in modo esponenziale rispetto al numero di bit per blocco (\textit{n}). \\
+Tuttavia, tipicamente, n è abbastanza grande per evitare che l'avversario possa effettuare un attacco a dizionario: ciò implica che, per implementare un cifratore perfetto,
+bisogna implementare un numero grande di chiavi (esponenziale). Nella pratica, quindi, non è possibile implementare la perfect secrecy nei sistemi di cifratura a blocchi. \\
+Nella pratica il cipher è considerato buono se l'avversario non riesce a distinguerlo da un true block cipher. \\
+Il plaintext è diviso in blocchi di lunghezza fissata $n$:
 
 \begin{figure}[H]
   \centering
@@ -234,10 +245,8 @@ Plaintext divided in blocks of fixed length $n$:
 	\item $E : \{0,1\}^n \rightarrow \{0,1\}^n$
 	\item $D : \{0,1\}^n \rightarrow \{0,1\}^n$
 \end{itemize}
-E is a \textbf{permutation}.
-
-A perfect block cipher implements all possible permutations $2^n!$
-
+E è una \textbf{permutazione}.
+Un block cipher perfetto implementa tutte le possibili permutazioni $2^{n}!$
 $$\text{key size} = log_2 2^n! \approx n \times 2^n$$
 
 The key would be too large.
