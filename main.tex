@@ -230,12 +230,12 @@ Questo comportamento deve essere evitato in crittografia.
 Non lavoriamo più bit a bit, ma su blocchi di bit. Si può, in tal modo, implementare un cipher mantenendo la perfect secrecy?
 La funzione E ora diventa una funzione che ha lo stesso dominio di \textit{p} ed è invertibile (mappa, quindi, ogni blocco unicamente ad un altro blocco).
 Tutti i possibili blocchi di \textit{n} bit sono $2^{n}$. Per avere un cipher perfetto dobbiamo implementare tutte le permutazioni dei blocchi, da cui il numero di chiavi è uguale a $2^{n}!$.
-La lunghezza in bit della chiave varia, quindi, in modo esponenziale rispetto al numero di bit per blocco (\textit{n}). \\
+La lunghezza in bit della chiave è calcolabile come $log_2 (2^{n}!) \simeq n2^{n}$.
+La lunghezza della chiave varia, quindi, in modo esponenziale rispetto al numero di bit per blocco (\textit{n}). \\
 Tuttavia, tipicamente, n è abbastanza grande per evitare che l'avversario possa effettuare un attacco a dizionario: ciò implica che, per implementare un cifratore perfetto,
 bisogna implementare un numero grande di chiavi (esponenziale). Nella pratica, quindi, non è possibile implementare la perfect secrecy nei sistemi di cifratura a blocchi. \\
 Nella pratica il cipher è considerato buono se l'avversario non riesce a distinguerlo da un true block cipher. \\
 Il plaintext è diviso in blocchi di lunghezza fissata $n$:
-
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/block-cipher}
@@ -248,19 +248,34 @@ Il plaintext è diviso in blocchi di lunghezza fissata $n$:
 E è una \textbf{permutazione}.
 Un block cipher perfetto implementa tutte le possibili permutazioni $2^{n}!$
 $$\text{key size} = log_2 2^n! \approx n \times 2^n$$
-
-The key would be too large.
-In practice, the encryption function corresponding to a randomly chosen key ($E(k, x)$) should appear as a randomly chosen permutation ($\pi(x)$).
-
+La chiave sarebbe troppo grande.
+In pratica, la funzione di criptaggio che corrisponde a una chiave scelta randomicamente ($E(k, x)$), dovrebbe apparire come una permutazione scelta randomicamente ($\pi(x)$).
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/perm}
 \end{figure}
-
-The block size should be large enough to make the dictionary attack unfeasible in terms of storage complexity, i.e. if $n = 64$, and adversary should store $2^{64} \times (8 \times 2)$ bytes (8 bytes for plaintext and ciphertext).
+La grandezza del blocco dovrebbe essere grande abbastanza da rendere un attacco dizionario infattibile in termini di complessità di storage, quindi se $n = 64$, un avversario dovrebbe salvare $2^{64} \times (8 \times 2)$ bytes (8 bytes per il plaintext e ciphertext).
 
 \subsection{DES improvements}
-DES is deprecated because of the shortness of the key (56 bits).
+DES è deprecato per via della chiave che è troppo corta (56 bits). Potremmo pensare di cifrare più volte usando E con chiavi diverse: esiste uno standard che sfrutta questo metodo ed è chiamato 3DES.\\
+L'operazione di cifratura è fatta in questo modo:
+$$3E(e_1, e_2, e_3), p) = E (e_1, D(e_2, E(e_3, p)))$$
+Nel ricevitore basta effettuare l'operazione inversa. Perché si cifra, poi si decifra e poi nuovamente si decifra? 
+Serve per mantenere la compatibilità con lo standard DES (backward compatibility): basta notare che se $e_1 = e_2 = e_3$, il risultato di 3DES è lo stesso di DES usando la chiave $e_{1/2/3}$.
+La complessità dell'attacco dell'avversario, tuttavia, diventa solo $2^{118}$ e non $2^{56-3}$. \\
+Perché non si utilizza una doppia encriptazione invece di 3DES? Perché non è sicura. \\
+Questo perché la complessità dell'attacco resta la stessa di quella di DES. Ad esempio:
+$$E(e_1, E(e_2, p))$$
+L'avversario potrebbe provare ad effettuare un attacco bruteforce sulle chiavi, quindi in tal caso si troverà a generare $2^{56-2}$ chiavi.
+Tuttavia, questo è un approccio abbastanza naive, ne esiste uno più efficiente chiamato \textit{Meet-in-the-middle}: si tratta ancora di un attacco known-plain text, nella quale l'avversario conosce una coppia $(c*, p*)$. \\
+L'avversario può calcolarsi una tabella composta da:
+$$\forall i  e_i, E(e_i, p*)$$
+Successivamente, per ogni \textit{j}, può calcolare:
+$$y' = D(e_j, c*)$$
+e confrontarlo con gli elementi della tabella precedente: se i due risultati coincidono, allora $(e_i,e_j)$ è la chiave, \\
+Perché questo metodo è più efficiente di quello precedente? Perché la prima operazione richiede di calcolare e memorizzare $2^56$ coppie $(e_i, E(e_i, p*))$
+e la seconda richiede di effettuare al più $2^{56}$ operazioni di decriptazione; le due complessità, in questo caso, si sommano e non si moltiplicano. Per questo la complessità resta $O(2^{56})$,
+rendendo l'algoritmo non più sicuro di DES. Nel caso di 3DES, questo attacco non è un problema, perché la complessità sarebbe pari a $2^{112}$ e la complessità dello spazio pari a $2^{56}$.
 
 \subsubsection{2DES}
 
@@ -270,8 +285,7 @@ DES is deprecated because of the shortness of the key (56 bits).
 \end{figure}
 
 $$k = k_1 + k_2$$
-
-Even if the new key is on 112 bits, it does not improve the security because the MITM attack (KPT attack) has complexity of $O(2^{56})$ to find $k_1$ and $O(2^{56})$ to find $k_2$ comparing the encrypted text $X_L$ and the decrypted one $Y_L$. This leads to a total complexity of $O(2^{56})$. Furthermore, it halves the performance.
+Anche se la nuova chiave è su 112 bits, questa non va a migliorare la sicurezza perché l'attacco \textit{Meet-in-the-middle} (Know-Plain text) ha una complessità $O(2^{56})$ per trovare $k_1$ e $O(2^{56})$ per trovare $k_2$, comparando il testo criptato $X_L$ e quello decriptato $Y_L$. Questo porta a una complessità totale di $O(2^{56})$. In più, dimezza le performance.
 
 \subsubsection{3DES}
 
@@ -281,41 +295,39 @@ Even if the new key is on 112 bits, it does not improve the security because the
 \end{figure}
 
 $$k = k_1 + k_2 + k_3$$
-
-The new key is on 168 bits and the MITM attack has a complexity of $O(2^{56\times2}) = O(2^{112})$.
-In $EDE$ version $k_1 = k_2 = k_3$.
+La nuova chiave è su 168 bits e l'attacco \textit{Meet-in-the-middle} ha una complessità di $O(2^{56\times2}) = O(2^{112})$.
+Nella versione $EDE$ $k_1 = k_2 = k_3$.
 
 \subsubsection{Key whitening}
-It is used in strong "black box" (without internal vulberability) ciphers which use short keys.
+È utilizzato in nei cifrari detti "scatole nere" (senza vulnerabilità interne), che utilizzano chiavi piccole.
 
-It foresees only one encryption process plus pre-xor and post-xor:
+Prevede solo il processo di criptazione più pre-xor e post-xor:
 $$ c = k_2 \oplus E(k, (m \oplus k1)) $$
 
-\paragraph{Attacks complexity}
+\paragraph{Complessità degli attacchi}
 \begin{itemize}
-	\item bruteforce attack: $O(2^{k+2n})$ computational
-	\item MITM attack: $O(2^{k+n})$ computational + storage
-	\item most efficient attack: the adversary knows $2^m$ (PT-CT)-pairs (data complexity) $\Rightarrow$ $O(2^{k+n-m})$
+	\item attacco \textit{bruteforce}: $O(2^{k+2n})$ computazionale
+	\item attacco \textit{meet-in-the-middle}: $O(2^{k+n})$ computational + storage
+	\item attacco più efficiente: l'avversario conosce $2^m$ (PT-CT)-coppie (complessità dei dati) $\Rightarrow$ $O(2^{k+n-m})$
 \end{itemize}
 
 \section{Exhaustive key search}
-With $k > n$ it is possible to find false positive keys. Given a pair $x_1$ and $y_1$, the probability that key $k$ is able to map $x_1$ in $y_1$ is:
+Con $k > n$ è possibile trovare chiavi false positive. Data una coppia $x_1$ e $y_1$, la probabilità che quella chiave $k$ sia in grado di mappare $x_1$ in $y_1$ è:
 $$ P = \frac{1}{2^n} $$
-because the algorithm can be considered secure and the ouput can be seen as an uniform random variable.
-
-Since the number of keys are $2^k$, the number of expected candidate keys is:
+questo perché l'algoritmo può essere considerato sicuro e l'output può essere visto come una variabile random uniforme.
+Dato che il numero di chiavi sono $2^k$, il numero di chiavi candidate atteso è: 
 $$ E(\#keys) = 2^k \times \frac{1}{2^n} = 2^{k-n}$$
-If I want to reduce the set of candidate keys I have to collect other pairs (related to the concept of \textit{unicity distance}). If I have $t$ plaintext-ciphertext pairs, the number of expected candidate keys will be:
+Se si vuole ridurre il set di chiavi candidate, si deve collezionare altre coppie (relativamente al concetto di \textit{unicity distance}). Se si hanno $t$ coppie plaintext-ciphertext, il numero di chiavi candidate atteso sarà:
 $$ E(\#keys) = 2^{k-tn} $$
-A multiple encryption with r-stage of encryption has $2^{rk-tn}$ candidate keys.
+Un criptaggio multiplo con r-stage di criptaggi ha $2^{rk-tn}$ chiavi candidate.
 
 \section{Confusion and diffusion}
-According to Shannon, there are two primitive operations with which strong encryption algorithms can be built:
-\begin{itemize}
-	\item \textbf{Confusion}: relationship between key and ciphertext is obscured using substitution
-	\item \textbf{Diffusion}: the influence of one plaintext symbol is spread over many ciphertext symbols with the goal of hiding statistical properties of the plaintext using permutation
+In accordo a Shannon, ci sono due operazioni primitive con cui possono essere costruiti algoritmi di criptaggio forti:
+\begin{itemize}							
+	\item \textbf{Confusion}: relazione tra chiave e ciphertext è oscurata durante la sostituzione.
+	\item \textbf{Diffusion}: l'influenza di un simbolo del plaintext è diffusa su molti simboli del ciphertext con l'obiettivo di nascondere le proprietà statistiche del plaintext, utilizzando le permutazioni.
 \end{itemize}
-These two operations must be concateneted.
+Queste due operazioni devono essere concatenate.
 
 \section{Data Encryption Standard (DES)}
 \begin{itemize}
