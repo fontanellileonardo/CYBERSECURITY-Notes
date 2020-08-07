@@ -311,6 +311,25 @@ $$ c = k_2 \oplus E(k, (m \oplus k1)) $$
 	\item attacco più efficiente: l'avversario conosce $2^m$ (PT-CT)-coppie (complessità dei dati) $\Rightarrow$ $O(2^{k+n-m})$
 \end{itemize}
 
+\section{Computational security vs Attack complexity}
+\subsection{Computational security}
+Un cifrario è computazionalmente (praticamente) sicuro quando, il livello percepito di computazione richiesto per romperlo, utilizzando il miglior attacco conosciuto, eccede, di un margine "di sicurezza", le risorse computazionali dell'avversario ipotizzato.
+Si assume, quindi, che l'avversario abbia una potenza computazionale limitata.
+\subsection{Attack complexity}
+La complessità di un attacco dipende da:
+\begin{itemize}
+	\item \textbf{Data Complexity:} il numero previsto di unità di dati di input richiesti
+	\item \textbf{Storage Complexity:} il numero previsto di unità di storage richieste.
+	\item \textbf{Processing Complexity:} il numero previsto di operazioni richieste per processare i dati di input e/o riempire lo spazio di storage con i dati.
+\end{itemize}
+\subsection{Computational security vs Attack complexity}
+Un block cipher è computazionalmente sicuro se:
+\begin{itemize}
+	\item La grandezza dei blocchi \textit{n} è sufficientemente grande da precludere una data analysis esaustiva 
+	\item La grandezza della chiave \textit{k} è sufficientemente grande da precludere una ricerca della chiave esaustiva
+	\item Nessun attacco conosciuto ha complessità di dati e di processing minore, rispettivamente, di $2^n$ e $2^k$.
+\end{itemize}
+
 \section{Exhaustive key search}
 Con $k > n$ è possibile trovare chiavi false positive. Data una coppia $x_1$ e $y_1$, la probabilità che quella chiave $k$ sia in grado di mappare $x_1$ in $y_1$ è:
 $$ P = \frac{1}{2^n} $$
@@ -334,7 +353,7 @@ Queste due operazioni devono essere concatenate.
 	\item $n = 64$
 	\item $k = 56$
 \end{itemize}
-DES is an iterative algorithm. For each block of plaintext, encryption is handled in 16 rounds which all perform the identical operation. In every round a different subkey is used and all subkeys $k_i$ are derived from the main key $k$ by the \textit{key schedule}.
+DES è un algoritmo iterativo. Per ogni blocco del plaintext, il criptaggio è gestito in 16 rounds che eseguono tutte operazioni identiche. In ogni round è utilizzata una differente sotto-chiave e tutte le sotto-chiavi $k_i$ sono derivate dalla chiave principale $k$ dal \textit{key schedule}.
 
 \begin{figure}[H]
   \centering
