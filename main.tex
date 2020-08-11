@@ -353,33 +353,28 @@ Queste due operazioni devono essere concatenate.
 	\item $n = 64$
 	\item $k = 56$
 \end{itemize}
-DES è un algoritmo iterativo. Per ogni blocco del plaintext, il criptaggio è gestito in 16 rounds che eseguono tutte operazioni identiche. In ogni round è utilizzata una differente sotto-chiave e tutte le sotto-chiavi $k_i$ sono derivate dalla chiave principale $k$ dal \textit{key schedule}.
+DES è un algoritmo iterativo. Per ogni blocco del plaintext, il criptaggio è gestito in 16 rounds che eseguono tutte operazioni identiche. 
+In ogni round è utilizzata una differente sotto-chiave e tutte le sotto-chiavi $k_i$ sono derivate dalla chiave principale $k$ dal \textit{key schedule}.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/key-schedule}
 \end{figure}
-
-The round function is built by means of a \textit{Feistel network}:
-
+La funzione round è costruita a partire da un \textit{Feistel network}:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.2\textwidth]{img/feistel}
 \end{figure}
-
 \begin{align}
 &L_i = R_{i-1} \notag\\
 &R_i = L_{i-1} \oplus f(R_{i-1}, k_i) \notag
 \end{align}
-
-One advantage of Feistel networks is that encryption and decryption are almost the same operation, just traversing the network in the opposite direction uning keys in reverse order.
-
+Un vantaggio del Feistel netwowk è che il criptaggio e il de-criptaggio sono praticamente le solite operazioni, semplicemente attraversare il network in direzione opposta unendo le chiavi in ordine inverso.
 \begin{align}
 &R_{i-1} = L_i \notag\\
 &L_{i-1} = R_i \oplus f(R_{i-1}, k_i) = R_i \oplus f(L_i, k_i) \notag
 \end{align}
-
-Feistel structure really only encrypts (decrypts) half of the input bits per each round.
+La struttura Feistel cripta (decripta) solo la metà dei bit di input per ogni round.
 
 \subsection{Round function \textit{f}}
 
@@ -387,43 +382,58 @@ Feistel structure really only encrypts (decrypts) half of the input bits per eac
   \centering
   \includegraphics[width=0.5\textwidth]{img/round-func}
 \end{figure}
-
-The $f$ function is a pseudo-random generator with the two input parameters $R_{i-1}$ and $k_i$. It should be unpredictable. It uses nonlinear building blocks and maps 32 input bits to 32 output bits using a 48-bit round key $k_i$, with $1 \leq i \leq 16$.
-
-\textit{Diffusion} is done on by \textit{initial permutation IP} using bytewise permutation and duplication, \textit{confusion} is made by S-boxes.
+La funzione $f$ è un preudo-random generator con due parametri di input $R_{i-1}$ e $k_i$. Dovrebbe essere non predicibile. Utilizza blocchi predefiniti non lineari e mappa 32 bits di input a 32 bits di output utilizzando una chiave "round" da 48 bit $k_i$, con $1 \leq i \leq 16$.
+La \textit{Diffusion} è fatta da una \textit{permutazione IP iniziale} utilizzando una permutazione e duplicazione bit-a-bit, \textit{confusion} è fatta da S-boxes.
 
 \subsection{DES properties}
-DES, as a good cipher, fullfills the following properties:
+DES è un buon cifrario e soddisfa le seguenti proprietà:
 \begin{itemize}
-	\item each ciphertext bit depends on all key and plaintext bits
-	\item there are not any evident statistical relationship between the plaintext and the ciphertext
-	\item the change of one bit in the plaintext (ciphertext) causes the change of the every bit in the ciphertext (plaintext) with 0.5 probability (uniform RV).
+	\item ogni bit del ciphertext dipende completamente dai bit della chiave e del plaintext
+	\item non ci sono evidenti relazioni statistiche tra il plaintext e il ciphertext
+	\item il cambiamento di un bit nel plaintext (ciphertext) causa il cambiamento di ogni bit nel ciphertext (plaintext) con probabilità 0,5 (RV uniforme).
 \end{itemize} 
+
+\section{Note sulla Criptoanalisi}
+Un buon cipher deve essere in grado di mascherare le proprietà statistiche del plaintext: se queste si ripercuotono sul ciphertext, l'avversario può ottenere informazioni sul plaintext e, in alcuni casi, quindi, anche sulla chiave.
+Un esempio storico è quello del \textit{cifrario monoalfabetico}: la chiave consiste in una tabella di lettere e la funzione di criptazione opera sostituendo le lettere del plaintext con quelle nella chiave (permutazione delle lettere). 
+L'avversario può adoperare tecniche di criptoanalisi, ad esempio, partendo dalla lingua nella quale è scritto il messaggio. 
+Questo perché, ogni lingua è caratterizzata dall'utilizzo più o meno frequente di certi caratteri, quindi l'avversario può associarli con i caratteri del plaintext più frequenti, ottenendo il plaintext e in questo caso anche parte della chiave.
+Uno spazio delle chiavi molto grande non è sufficiente (è solo condizione necessaria) a mascherare le proprietà statistiche del plaintext, quindi la funzione di criptazione deve far in modo che il ciphertext appaia come una serie di caratteri il più possibile aleatoria.
 
 \section{Encryption Modes}
 \subsection{Electronic Codebook (ECB)}
+Dividiamo il plaintext in più parti di uguale lunghezza e cifriamo ogni singola parte, indipendentemente.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/ecb}
 \end{figure}
 \paragraph{Pros}
 \begin{itemize}
-	\item No block synchronization is required
-	\item No error propagation
-	\item Can be parallelized
+	\item Non è richiesta nessuna sincronizzazione tra blocchi.
+	\item Non c'è propagazione di errori.
+	\item Può essere parallelizzata.
 \end{itemize}
 \paragraph{Cons}
 \begin{itemize}
-	\item Identical plaintext block results in identical ciphertext block: it does not hide data pattern and allows traffic analysis
-	\item it allows block re-ordering and substitution
+	\item Blocchi di plaintext identici, risultano in identici blocchi di ciphertext: non nasconde pattern di dati e consente l'analisi del traffico.
+	\item Consente il re-ordinamento dei blocchi e la sostituzione.
 \end{itemize}
+Gli svantaggi ci indicano che questo sistema è malleabile: un avversario può registrare un blocco e rimpiazzarlo in un ciphertext successivo, così da alterare, efficientemente, il plaintext associato.
+Una soluzione può essere quella di associare un timestamp al messaggio, in modo da evitare attacchi di replay: il problema persiste perché l'avversario può ancora intercettare il messaggio, modificare i blocchi che contengono le informazioni rilevanti e poi trasmettere il messaggio alterato. Una encryption mode che risolve questi problemi è CBC.
 
 \subsection{Cipherblock Chaining (CBC)}
+Prima che il blocco di plaintext corrente venga cifrato, viene fatta un'operazione di XOR con il ciphertext ottenuto dal blocco precedente.
+Per il primo blocco si usa un \textit{Initialization Vector}, il quale serve per randomizzare il ciphertext finale: CBC è, in tal senso, deterministico, ciò vuol dire che plaintext identici possono produrre ciphertext differenti a parità di chiave.
+IV è una sorta di nonce. Non sussiste più neanche il problema del riordinamento dei blocchi, in quanto questo porterebbe ad alterare l'intero ciphertext. L'IV va rigenerato ad ogni ritrasmissione (come un nonce) e può essere mandato in chiaro, anche se bisogna assicurarsi che resti integro.
+Non è necessario un RNG, può bastare anche un contatore. Tuttavia, diversamente da ECB:
+\begin{itemize}
+	\item L'algoritmo non può essere parallelizzato perché ogni operazione richiede il risultato di quella precedente.
+	\item Un errore nel blocco i-esimo si propaga in tutti i blocchi successivi.
+\end{itemize} 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/cbc}
 \end{figure}
-CBC suffers form error propagation.
 
 \subsection{Cipher Feedback (CFB)}
 \begin{figure}[H]
