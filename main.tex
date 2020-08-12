@@ -37,16 +37,14 @@
 \usepackage[hidelinks]{hyperref}
 
 \title{Cybersecurity}
-\author{Francesco Barbarulo}
+\author{Leonardo Fontanelli}
 \date{\monthyeardate\today}
 
 \begin{document}
 \pagenumbering{roman}
 
 \maketitle
-\abstract{The aim of these notes is to give some pills of every argument for written and oral tests. I have assumed that the reader has attended the lessons because these notes, by themselves, are not sufficient to have a global and profound knowledge.
-
-I wish you good luck!}
+\abstract{Queste dispense sono state prodotte a partire dalle note di Francesco Barbarulo e Antonio Le Caldare. È stato realizzato un merge delle suddette dispense e delle slide del professor Dini. È disponibile la repository Git del tex file a questo indirizzo: \texttt{\url{}} ed è possibile forkarle e integrarle con del materiale aggiuntivo per i successivi anni.}
 
 \tableofcontents
 
@@ -440,35 +438,36 @@ Non è necessario un RNG, può bastare anche un contatore. Tuttavia, diversament
   \centering
   \includegraphics[width=0.5\textwidth]{img/cfb}
 \end{figure}
-CFB is an asynchronous blockwise stream cipher becasue it depends on the previous ciphertext.
+CFB è uno stream cipher blocco a blocco asincrono, perché dipende dal ciphertext precedente.
 
 \subsection{Output Feedback (OFB)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/ofb}
 \end{figure}
-OFB is a synchronous blockwise stream cipher and it allows pre-computation because the next block does not depend on netiher $PT$ or $CT$.
+OFB è uno stream cipher blocco a blocco sincrono e consente la pre-computazione, questo perché il blocco successivo non dipende ne da $PT$ o $CT$.
 
 \subsection{Counter Mode (CTR)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/ctr}
 \end{figure}
-It gives an upper limit to the amount of data that can be encrypted.
+Da' un limite superiore all'ammontare di dati che possono essere criptati.
 
 \section{Padding (PKCS \#7)}
-Padding is used to make the plaintext length multiple of block size $n$. In all cases the ciphertext length is always greater than the plaintext. This phenomenon is called \textit{ciphertext expansion}.
+Il padding viene utilizzato per rendere la lunghezza del plaintext multipla della grandezza $n$ del blocco. In tutti i casi la lunghezza del ciphertext è sempre più grande del plaintext. Questo fenomeno è chiamato \textit{ciphertext expansion}.
 
 \subsection{Ciphertext Stealing Mode (CTS)}
-It encrypts using ECB without ciphertext expansion.
-
+Cripta utilizzando EBC senza la ciphertext expansion.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/cts}
 \end{figure}
 
-
 \section{Advanced Encryption Standard (AES)}
+Similmente a DES, anche in questo caso si usa uno schema di funzioni a round.
+Tuttavia le reti di Feistel sono sostituite con delle reti di \textit{Subs-Perms}: queste effettuano, per ogni round e in ordine, delle operazioni di byte substitution, row shift e column mix, restando comunque ancora delle funzioni invertibili. 
+Si usa ancora la \textit{key expansion}.
 \begin{itemize}
 	\item $n = 128$
 	\item $k = 128/192/256$
@@ -483,39 +482,109 @@ key lengths & \# rounds = $n_r$ \\
 256 bit & 14    
 \end{tabular}
 \end{center}
-
-AES does not have a Feistel structure. 
+AES non ha una struttura Feistel.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/aes}
 \end{figure}
-
+AES consiste di 3 \textit{layers}:
 AES consists of three \textit{layers}:
-\paragraph{Key addition layer} A 128-bit round key which has been derived from the main key in the key schedule, is XORed to the state
-\paragraph{Byte substitution layer (S-box)} It introduces \textit{confusion} by transforming nonlinearly each elemeny of the state using lookup tables
-\paragraph{Diffusion layer} It introduces \textit{diffusion} through the following operations: \textit{ShiftRows} and \textit{MixColumn}.
+\begin{itemize}
+	\item \textbf{Key addition layer}: Una chiave rotonda a 128-bit che è stata derivata dalla chiave principale nello schedule della chiave a cui viene applicato uno XOR allo stato.
+	\item \textbf{Byte substitution layer (S-box)}: Introduce \textit{confusion} trasformando nonlinearmente ogni elemento dello stato utilizzando tabelle lookup.
+	\item \textbf{Diffusion layer}: Introduce \textit{diffusion} attraverso le seguenti operazioni: \textit{ShiftRows} e \textit{MixColumn}.
+\end{itemize}
+
+\newpage
 
 \section{Hash function}
-It provides message integrity.
+La criptazione asimmetrica ha come scopo quello di garantire la \textit{confidenzialità}. \\
+Le funzioni hash, invece, possono essere utilizzate per \textit{l'integrità} e \textit{l'autenticazione}. \\
+L'autenticazione dell'origine dei dati richiede il controllo di integrità, e viceversa.
 $$ H : \{0,1\}^* \rightarrow \{0,1\}^n $$
-Collision occurs when at least two inputs have the same \textit{digest}.
+Le collisioni avvengono quando almeno 2 input hanno lo stesso \textit{digest}.
+Una funzione hash sicura è quando le collisioni esistono ma sono "difficili" da trovare.
 
-A secure hash function is when collisions exist but they are "difficult" to find.
+\subsection{Proprietà informali}
+Una funzione hash deve rispettare, in pratica, queste proprietà:
+\begin{enumerate}
+	\item essere applicabile a messaggi di qualsiasi grandezza
+	\item l'uscita deve essere di grandezza prefissata
+	\item facile da applicare
+	\item difficile da invertire
+	\item ogni hash deve essere unico
+\end{enumerate}
+Le proprietà più problematiche da rispettare, nella realtà, sono le ultime due. L'hash non può essere matematicamente unico se il numero degli input è maggiore del numero degli output possibili:
+di conseguenza, le funzioni possono presentare degli $x_0$, $x_1$ tali che $H(x_0) = H(x_1)$, cioè una tipica situazione di \textit{collisione}. 
+Per mitigare questo problema, l'algoritmo dovrà almeno rendere molto difficile trovare una collisione.
 
-\subsection{Security properties}
-\paragraph{Preimage resistance or One-Wayness}
-Given a hash output $z$ it must be "difficult" to find the input $x$ such that $z = h(x)$
-\paragraph{Second Preimage Resistance or Weak Collision Resistance}
-Given an input $x$ it must be "difficult" to find $x'$ such that $h(x) = h(x')$
-\paragraph{Collision Resistance}
-It must be "difficult" to find $x$ and $x'$ such that $h(x) = h(x')$
-
-\subsection{Black box attacks}
-These attacks do not exploit the internals of the hash function:
+\subsection{Proprietà di sicurezza}
 \begin{itemize}
-	\item Guessing attack against $2^{nd}$ preimage: $O(2^n)$
-	\item Birthday attack against $3^{rd}$ preimage: $O(2^{\frac{n}{2}})$
+	\item \textbf{Preimage resistance o One-Wayness}: Dato un output hash $z$, deve essere "difficile" trovare l'input $x$ tale che $z = h(x)$.
+	\item \textbf{Second Preimage Resistance o Weak Collision Resistance} Dato un input $x$ deve essere "difficile" trovare $x'$ tale che $h(x) = h(x')$.
+	\item \textbf{Collision Resistance}: Deve essere difficile trovare $x$ e $x'$ tale che $h(x) = h(x')$.
+\end{itemize}
+Generalmente, una funzione hash deve soddisfare almeno 2 su 3 di queste proprietà. \\
+Possono essere categorizzate in:
+\begin{itemize}
+	\item \textbf{One-way Hash Functions (weak one-way)}: soddisfano le proprietà di preimage e 2nd-preimage resistance.
+	\item \textbf{Collision Resistant Hash Functions (strong one-way)}: soddisfano le proprietà di 2nd-preimage e collision resistance.
+\end{itemize}
+Se una funzione hash ha la proprietà di collision resistance, è dimostrabile che questa soddisfi anche la proprietà di 2nd preimage resistance. \\
+Tuttavia, non è vero che avere la collision resistance implichi avere anche anche la preimage resistance: per questo le CRHF posseggono quasi sempre la prima proprietà.
+
+\subsection{Attacchi alle Funzioni Hash}
+L'obiettivo dell'attacco è produrre una collisione. Ci si può trovare in due situazioni:
+\begin{itemize}
+	\item \textbf{Selective Forgery}: l'avversario ha il controllo completo o parziale su $x$.
+	\item \textbf{Existential Forgery}: l'avversario non ha il controllo su $x$.
+\end{itemize}
+L'avversario non ha controllo su $x$, se l'informazione che rappresenta non è consistente o non persegue lo scopo dell'avversario. \\
+Una categoria di attacchi alle funzioni hash è quella del tipo \textbf{Black Box}, nella quale:
+\begin{itemize}
+	\item H è considerata come una scatola nera.
+	\item teniamo in considerazione solo la dimensione dell'output
+	\item H è considerata approssimatamente una variabile casuale.
+\end{itemize}
+\subsubsection{Black box attacks}
+Questi attacchi, quindi, non sfruttano le caratteristiche interne delle funzioni hash:
+\begin{itemize}
+	\item Guessing attack contro $2^{nd}$ preimage: $O(2^n)$
+	\item Birthday attack contro $3^{rd}$ preimage: $O(2^{\frac{n}{2}})$
+\end{itemize}
+
+\paragraph{Guessing Attack $O(2^n)$} 
+L'obiettivo è quello di violare la 2nd preimage resistance, partendo da un plaintext target $x_0$.
+L'algoritmo è il seguente:
+\begin{center}
+\begin{lstlisting}[language=C]
+	do 
+	   x <- random()
+	while H(x) == H(x0)
+	return x;
+\end{lstlisting}
+\end{center}
+Ogni step richiede di generare un numero random e di trovare l'hash.
+Ogni hash calcolato ha una probabilità di $1/2^n$ di essere il risultato da trovare. 
+L'algoritmo ha, quindi, una complessità di $O(2^n)$, principalmente dovuto alle iterazioni
+
+\paragraph{Birthday Attack $O\left(2^{\frac{n}{2}}\right)$}
+\begin{enumerate}
+	\item generiamo $N = 2^{\frac{n}{2}}$ messaggi/numeri casuali, che chiameremo $x_1, x_2, ... , x_n$.
+	\item calcoliamo l'hash per ogni messaggio, cioè $t_i = H(x_i)$, ottenendo $t_1, t_2, ... , t_n$.
+	\item scorriamo gli hash prodotti per individuare due hash uguali, quindi $t_i == t_j, i \neq j$.
+	\item se non troviamo nessun hash uguale, ripartiamo dal primo punto.
+\end{enumerate}
+Dal punto di vista della complessità, ogni singola iterazione è complessa $2^{\frac{n}{2}}$, tuttavia non conosciamo qual è il numero medio di iterazioni da fare prima di trovare una collisione.
+A questo punto ci viene in aiuto il:
+
+\subparagraph{Birthday Paradox}
+\begin{itemize}
+	\item \textbf{Problema 1}: Qual è la probabilità che, in una stanza dove ci sono 23 persone, almeno una sia nata il 25 Dicembre? \\
+	$\underbrace{\frac{1}{365}+\frac{1}{365}+\ldots+\frac{1}{365}}_{23 \text { volte }}=0,063$
+	\item \textbf{Problema 2}: In una stanza in cui ci sono 23 persone, qual è la probabilità che almeno 2 persone siano nate lo stesso giorno? \\
+	Per semplicità
 \end{itemize}
 
 \subsection{Merkle-Damgard scheme}
@@ -531,6 +600,8 @@ The final output is obtained by XOR operation which makes $h$ collision resistan
 $$ H_{i+1} = E(x_i, H_i) \oplus H_i $$ 
 
 To make the birthday attack much more unfeasible the \textit{Hirose scheme} can be used. Indeed it foresees the use of two block ciphers in order to have an output of $2\times128$ bit.
+
+\newpage
 
 \section{Message Authentication Codes (MACs)}
 It provides message integrity and message authentication.
@@ -1180,7 +1251,6 @@ The main functionalities of anti-virus software are:
 	\item Remove malware's infection.
 \end{enumerate}
 The first two features require the ability to recognize malware from legitimate software. Modern anti-virus software has other features, among which firewall, intrusion detection, anti-spam, and anti-phishing.
-
 \subsubsection{Fred Cohen's result}
 Fred Cohen (the inventor of the word “computer virus”) developed the following theorem:
 \begin{center}
