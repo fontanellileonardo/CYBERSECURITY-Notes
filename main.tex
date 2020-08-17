@@ -571,8 +571,8 @@ L'algoritmo ha, quindi, una complessità di $O(2^n)$, principalmente dovuto alle
 
 \paragraph{Birthday Attack $O\left(2^{\frac{n}{2}}\right)$}
 \begin{enumerate}
-	\item generiamo $N = 2^{\frac{n}{2}}$ messaggi/numeri casuali, che chiameremo $x_1, x_2, ... , x_n$.
-	\item calcoliamo l'hash per ogni messaggio, cioè $t_i = H(x_i)$, ottenendo $t_1, t_2, ... , t_n$.
+	\item generiamo $N = 2^{\frac{n}{2}}$ messaggi/numeri casuali, che chiameremo $x_1, x_2, \ldots , x_n$.
+	\item calcoliamo l'hash per ogni messaggio, cioè $t_i = H(x_i)$, ottenendo $t_1, t_2, \ldots , t_n$.
 	\item scorriamo gli hash prodotti per individuare due hash uguali, quindi $t_i == t_j, i \neq j$.
 	\item se non troviamo nessun hash uguale, ripartiamo dal primo punto.
 \end{enumerate}
@@ -584,22 +584,27 @@ A questo punto ci viene in aiuto il:
 	\item \textbf{Problema 1}: Qual è la probabilità che, in una stanza dove ci sono 23 persone, almeno una sia nata il 25 Dicembre? \\
 	$\underbrace{\frac{1}{365}+\frac{1}{365}+\ldots+\frac{1}{365}}_{23 \text { volte }}=0,063$
 	\item \textbf{Problema 2}: In una stanza in cui ci sono 23 persone, qual è la probabilità che almeno 2 persone siano nate lo stesso giorno? \\
-	Per semplicità
+	Per semplicità, si può risolvere il problema inverso Q (la probabilità che 2 persone non siano nate lo stesso giorno) e calcolare P come:
+	$$ Q = 1 - P $$ 
+	$$\frac{364}{365} \cdot \frac{363}{365} \cdot \ldots \cdot \frac{(364-23+1)}{365}=0,493$$
+	$$ P = 1 - Q = 0,507 $$
+	La probabilità, quindi, è nettamente superiore a quella del problema precedente.
 \end{itemize}
 
-\subsection{Merkle-Damgard scheme}
-This scheme is used to build the hash function H. If we want to build a Collision Resistant Hash Function (CRHF) we need a collision resistant $h$.
+\subsection{Costruzione di una Funzione Hash}
 
-\subsubsection{Davies-Meyer scheme}
+\subsubsection{Schema Merkle-Damgard}
+Questo schema è utilizzato per costruire una funzione hash $H$. Se vogliamo costruire una \textbf{Collision Resistant Hash Function (CRHF)} si ha bisogno un $h$ resistente alle collisioni.
+
+\paragraph{Schema Davies-Meyer}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.2\textwidth]{img/davies-meyer}
 \end{figure}
-This scheme is used to build a collision resistant $h$. It is build using a block cipher (i.e. AES-128) which takes $H_i$ as input and $x_i$ as key.
-The final output is obtained by XOR operation which makes $h$ collision resistant:
+Questo schema viene utilizzato per costruire $h$ resistente alle collisioni. È costruito utilizzando un block cipher (AES-128) che prende $H_i$ come input e $x_i$ come chiave.
+L'output finale è ottenuto effettuando un'operazione di XOR che rende $h$ resistente alle collisioni:
 $$ H_{i+1} = E(x_i, H_i) \oplus H_i $$ 
-
-To make the birthday attack much more unfeasible the \textit{Hirose scheme} can be used. Indeed it foresees the use of two block ciphers in order to have an output of $2\times128$ bit.
+Per rendere l'attacco birthday molto meno infattibile, può essere utilizzato lo \textit{Schema Hirose}. Infatti, prevede l'utilizzo di block ciphers per poter avere un output di $2\times128$ bit.
 
 \newpage
 
