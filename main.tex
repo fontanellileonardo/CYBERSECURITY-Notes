@@ -609,7 +609,16 @@ Per rendere l'attacco birthday molto meno infattibile, può essere utilizzato lo
 \newpage
 
 \section{Message Authentication Codes (MACs)}
-It provides message integrity and message authentication.
+MAC non viene usato per la confidenzialità, l'obiettivo è quello dell'autenticazione: come garantire che un messaggio m sia stato inviato da una certa entità? \\
+Supponiamo che Alice debba mandare a Bob un messaggio $m$: per garantire l'autenticità, Alice produce un tag $t$ e lo trasmette insieme ad $m$. 
+Per produrre $t$ usiamo una chiave precondivisa $k$ (similmente agli schemi simmetrici) come ingressi per una funzione S. Quindi:
+$$ m,t = S(k,m) \rightarrow Bob$$
+Bob verifica l'autenticità usando una funzione di verifica V:
+$$V(m,k,t) = true/false$$
+La funzione di verifica consiste in calcolare $t'$ e confrontarlo con $t$ ricevuto:
+$$t' = S(k,m)$$
+$$return\;t' == t$$
+In definitiva, MAC fornisce l'integrità del messaggio e autenticazione.
 
 \begin{figure}[H]
   \centering
@@ -617,30 +626,41 @@ It provides message integrity and message authentication.
 \end{figure}
 
 \begin{itemize}
-	\item $m$: clear message
-	\item $k$: shared key between the two parties
-	\item $t$: tag or digest or fingerprint
-	\item $S$: MAC generation algorithm
-	\item $V$: MAC verification algorithm
+	\item $m$: messaggio in chiaro
+	\item $k$: chiave condivisa tra le due parti
+	\item $t$: tag o digest o fingerprint
+	\item $S$: Algoritmo di generazione MAC
+	\item $V$: Algoritmo di verifica MAC
 \end{itemize}
 
-\subsection{MAC generation algorithm}
+\subsection{Algoritmo di generazione MAC}
 \begin{itemize}
-	\item It must be "easy"
-	\item $S : \{0,1\}^* \rightarrow \{0,1\}^n$ is an hash function
-	\item \textbf{Computational resistance property} (\textit{key non-recovery}): for a certain key $k$, given ($m_i, t_i$), where $t_i = S(k, m_i)$, it must be "difficult" to compute $(m, t) : t = S(k, m)$ for any $m \neq m_i$ without knowing $k$.
+	\item Deve essere "semplice"
+	\item $S : \{0,1\}^* \rightarrow \{0,1\}^n$ è una funzione hash				
+	\item \textbf{Computational resistance property} (\textit{key non-recovery}): per una certa chiave $k$, dato ($m_i, t_i$), dove $t_i = S(k, m_i)$, deve essere "difficile" calcolare $(m, t) : t = S(k, m)$ per ogni $m \neq m_i$ senza conoscere $k$.
 \end{itemize}
-
-MACs do not provide no-repudiation.
+In pratica:
+\begin{itemize}
+	\item L'avversario non può produrre tag per nuovi messaggi (a scelta o non)
+	\item L'avversario non può calcolare la chiave partendo dalle coppie ($m_i, t_i$)
+	\item S, per l'avversario che non conosce $k$, deve possedere le proprietà di:
+	\begin{itemize}
+		\item \textit{2nd-preimage} e \textit{collision resistance}
+		\item \textit{preimage resistance} per attacchi choosen-text
+	\end{itemize}
+	\item Non c'è nessuna proprietà da rispettare nel caso di un'entità che conosce $k$:
+	infatti ci basiamo sul fatto che la chiave sia un segreto che non vada rivelato e che entrambi le parti siano in grado di non comprometterla.
+\end{itemize}
+La chiave utilizzata per il MAC (per l'autenticazione) deve essere diversa da quella usata dal cipher simmetrico (per la confidenzialità).
 
 \subsection{MACs from hash function}
 \paragraph{Secret prefix scheme} 
 $$t = h(k||m)$$
-It is not secure because the MAC can be constructed from $m$ without knowing the key.
+Non è sicuro perché il MAC può essere costruito da $m$ senza conoscere la chiave.
 
 \paragraph{Secret postfix scheme}
 $$t = h(m||k)$$
-If an adversary finds a collision in the hash function, i.e. $m_0 : h(m) = h(m_0)$, then $$h(m||k) = h(m_0||k)$$.
+Se un avversario trova una collisione nella funzione hash, tale che $m_0 : h(m) = h(m_0)$, allora $$h(m||k) = h(m_0||k)$$.
 
 \paragraph{HMAC}
 $$ t = h[(k \oplus opad) || h[(k \oplus ipad) || m]]$$
