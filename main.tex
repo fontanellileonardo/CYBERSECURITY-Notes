@@ -662,43 +662,109 @@ Non è sicuro perché il MAC può essere costruito da $m$ senza conoscere la chi
 $$t = h(m||k)$$
 Se un avversario trova una collisione nella funzione hash, tale che $m_0 : h(m) = h(m_0)$, allora $$h(m||k) = h(m_0||k)$$.
 
+\subsection{Come costruire le funzioni MAC}
+Si possono utilizzare le seguenti categorie di funzioni:
+\begin{itemize}
+	\item \textbf{Pseudo Random Function (PRF)}
+	\begin{itemize}
+		\item \textit{CBC-MAC}
+		\item \textit{NMAC}
+		\item \textit{PMAC}
+	\end{itemize}
+	\item \textbf{Collision Resistance Hash Function (CRHF)}
+	\begin{itemize}
+		\item \textit{HMAC}
+	\end{itemize}
+\end{itemize}
+
 \paragraph{HMAC}
 $$ t = h[(k \oplus opad) || h[(k \oplus ipad) || m]]$$
-where $opad, ipad$ are fixed known seqence of bit specified in the standard.
+dove $opad, ipad$ sono sequenze di bit fissate specificate nello standard.
 
-\subsection{MACs from block ciphers: CBC-MAC}
+\paragraph{MACs from block ciphers: CBC-MAC}
+Metodo CBC:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/cbc-mac}
 \end{figure}
-The problem of this scheme is that an adversary can create another pair $(m,t)$ without knowing the key if the message size is just one block.
-It just needs to append $m \oplus t$ to the original message $m$ so that the last encryption produces the same digest with $m' = m||(m \oplus t)$:
+\subparagraph{Padding} Il padding va scelto con cura:
+\begin{itemize}
+	\item Usare degli zero è insicuro perché $pad(m)$ e $pad(m||0)$ hanno lo stesso MAC 
+	\item Il padding deve essere una funzione invertibile, quindi $\forall(m_i,m_j) : m_i \neq m_j$ \\ $pad(m_0) \neq pad(m_1)$
+\end{itemize}
+Lo standard ISO consisglia di:
+\begin{itemize}
+	\item Usare $"100\ldots00"$ come padding, l'1 individua l'inizio.
+	\item Aggiungere un blocco dummy quando la dimensione del messaggio è multipla di quella del blocco.
+\end{itemize}
+Il problema di questo schema è che un avversario può creare un'altra coppia $(m,t)$ senza conoscere la chiave, se la lunghezza del messaggio è soltanto di un blocco.
+Deve soltanto appendere $m \oplus t$ al messaggio originale $m$ cosicché l'ultimo criptaggio produce lo stesso digest con $m' = m||(m \oplus t)$:
 $$ E_k(t \oplus (m \oplus t)) = t $$
 
+\newpage
+
 \section{Key establishment}
+Come gestire il problema dello scambio delle chiavi tra due o più entità?
 \subsection{Diffie-Hellman}
-This protocol allows to share the session key without a pre-shared key.
+Questo protocollo permette di scambiare una chiave in maniera sicura anche usando un canale non sicuro.
 \begin{itemize}
-	\item $p$ is a large (2048 bit) prime number
-	\item generator $g : \forall y, 1 \leq y < p, \exists x : y = g^x\ mod\ p$
+	\item $p$ è un numero primo molto grande (2048 bit)
+	\item generatore $g : \forall y, 1 \leq y < p, \exists x : y = g^x\ mod\ p$
 \end{itemize}
-Either $p$ and $g$ are public. Each peer generates the private key and computes the public key out of it. The session key will be:
+Sia $p$ e $g$ sono pubblici. Ogni peer genera la chiave privata e calcola la chiave pubblica attraverso essa. La chiave di sessione sarà:
 $$ k_{ab} = g^{ab}\ mod\ p $$
 
-\paragraph{Discrete exponentiation}
-Given $p$, $g$ and $x$, to compute $y = g^x\ mod\ p$ is computationally easy.
+\paragraph{Discrete exponentiation} Dati $p$, $g$ e $x$, calcolare $y = g^x\ mod\ p$ è computazionalmente semplice.
 
-\paragraph{Discrete logarithm}
-Given $g$, $1 \leq y \leq p-1$, it is computationally difficult to determine $x, 1 \leq x \leq p-1 : y = g^x\ mod\ p$.
+\paragraph{Discrete logarithm} Dato $g$, $1 \leq y \leq p-1$, è computazionalmente difficile determinare  $x, 1 \leq x \leq p-1 : y = g^x\ mod\ p$.
 
-\subsubsection{Passive attack}
-For a passive attack DH is secure: a passive adversary can only see $Y = g^x\ mod\ p$. In order to get the key $x$ it must solve the \textit{discrete logarithm} problem which is "difficult".
+\subsubsection{Descrizione del protocollo nel dettaglio}
+\begin{itemize}
+	\item $p$ e $g$ sono due quantità pubbliche e conosciute da entrambi le parti.
+	\item $p$ è un numero primo molto grande (1024-2048 bit).
+	\item $g$ è un parametro tale che $1 \leq g < p$
+\end{itemize}
+\paragraph{Protocollo:}
+\begin{itemize}
+	\item \textit{Fase 1}: Alice e Bob generano, rispettivamente, due numeri randomici $a$ e $b$.
+	\item \textit{Fase 2}: Alice e Bob calcolano, rispettivamente $$y_a = g^a mod\;p$$ $$y_b = g^b mod\;p$$
+	\item \textit{Fase 3}: Entrambi si scambiano, in chiaro, i parametri $y_a$ e $y_b$
+	\item \textit{Fase 4}: Le quantità ricevute vengono elevate per il numero generato inizialmente, quindi $$Alice\:(y_b)^a = (g^b)^a\;mod\;p = g^{ab}\;mod\;p = K_{ab}$$ $$Bob\:(y_a)^b = (g^a)^b\;mod\;p = g^{ab}\;mod\;p = K_{ab}$$ \\
+	Sia Bob che Alice adesso hanno la chiave.
+	\item \textit{Fase 5}: $a$ e $b$ vengono eliminati, per garantire la sicurezza del protocollo.
+\end{itemize}
+\paragraph{Sicurezza del protocollo:} Le uniche quantità che l'avversario può conoscere sono:
+\begin{itemize}
+	\item $p,g$ perché sono pubbliche.
+	\item $y_a,y_b$ perché trasmesse in chiaro dalle 2 parti.
+\end{itemize}
+L'unica maniera per calcolare la chiave è risalire ad $a$ oppure a $b$: per calcolare $a$ è necessario trovare
+$a$ tale che $y_a = g^a\;mod\;p$ e stessa cosa per $b$ tale che $y_b = g^b\;mod\;p$. \\
+Entrambe le formule rappresentano operazioni di \textbf{discrete logarithm}, le quali, sono computazionalmente difficili da realizzare.
+
+\subsubsection{Attacchi al protocollo}
+
+\paragraph{Passive attack}
+DH è sicuro nei confronti di un attacco passivo: un avversario passivo può soltanto vedere $Y = g^x\ mod\ p$. Per recuperare la chiave $x$, deve risolvere il problema del \textit{discrete logarithm}.
 
 \subsubsection{Active attack}
-A MITM attack can break DH. An adversary can establish a session key with both parties and act as a valid party. There is nothing that links the public key $Y$ to an identifier.
+Un attacco \textit{Man-In-The-Middle (MITM)} può rompere DH. Un avversario può stabilire una chiave di sessione con entrambe le parti e agire come membro attivo. Non c'è niente che linki la chiave pubblica $Y$ ad un identificatore.
+
+\paragraph{Man-In-The-Middle (MITM)} Se l'avversario diventa attivo, cioè inizia ad alterare il flusso dei pacchetti, può effettuare un attacco di Man-in-the-middle. \\
+L'avversario si interpone, quindi, tra Alice e Bob, sostituendo i valori $y_a$ e $y_b$ trasmessi, con $y_c = g^c\;mod\;p$ ricordando che $p$ e $g$ sono pubblici, mentre $c$ è un numero casuale che viene generato dall'avversario.
+Quindi, Alice otterrà la chiave: $$(y_c)^a\;mod\;p = g^{ac}\;mod\;p = K_{ac}$$
+Bob otterrà la chiave: $$(y_c)^b\;mod\;p = g^{ab}\;mod\;p = K_{cb}$$
+A questo punto l'avversario può decifrare i messaggi di Alice (usando la chiave $K_{ab}$), per poi cifrarli con la chiave $K_cb$ e trasmetterli a Bob. 
+Lo stesso discorso può essere fatto nel senso opposto. Le due parti non si accorgono nemmeno dell'intromissione dell'avversario. \\
+Il problema, in questo caso, è che i valori $y_a$ e $y_b$ non sono associati, in alcun modo, alle identità di Alice e Bob. Quindi, un semplice database centralizzato non è sufficiente a risolvere il problema, in quanto l'avversario potrebbe alterare le chiavi trasmesse agli utenti, in uscita dal database. \\
+Questo, quindi, è un problema di autenticazione che fa sorgere la necessità di introdurre i \textit{certificati}.
+
+\newpage
 
 \section{Public key encryption}
-It is an asymmetric encryption and it needs a generator $G$ that is able to generate random quantities which correspond to the private and public keys.
+È un sistema di criptaggio asimmetrico e rispetto al modello simmetrico, è prevista una coppia di chiavi $pubk,privk$ invece di una sola chiave. \\
+$privk$ è utilizzata dal ricevente e non deve essere compromessa, mentre $pubk$ è disponibile a tutti. \\
+S
 
 Public cryptography is used for key establishment.
 
