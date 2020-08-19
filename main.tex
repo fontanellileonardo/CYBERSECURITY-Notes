@@ -764,45 +764,48 @@ Questo, quindi, è un problema di autenticazione che fa sorgere la necessità di
 \section{Public key encryption}
 È un sistema di criptaggio asimmetrico e rispetto al modello simmetrico, è prevista una coppia di chiavi $pubk,privk$ invece di una sola chiave. \\
 $privk$ è utilizzata dal ricevente e non deve essere compromessa, mentre $pubk$ è disponibile a tutti. \\
-S
-
-Public cryptography is used for key establishment.
+Si hanno ancora due funzioni $E$ e $D$, che vengono descritte in questo modo:
+$$c = E(pubk,m)$$
+$$m = D(privk,c)$$
+La proprietà di consistenza è descrivibile come:
+$$\forall privk,pubk \; D(privk, E(pubk,m)) = m$$
+La crittografia pubblica è utilizzata per stabilire la chiave.
 
 \subsection{Security properties}
 \begin{itemize}
-	\item Given $pubk$ and $y$ it must be "difficult" to find $x : E(pubk, x) = y$
-	\item Known $pubk$ it must be "difficult" to find $privk$
+	\item Dato $pubk$ e $y$ deve essere "difficile" trovare $x : E(pubk, x) = y$
+	\item Conoscendo $pubk$, deve essere "difficile" trovare $privk$
 \end{itemize}
-
-There not exists any perfect public key cipher:
+Per "difficile" si intende che non esiste un algoritmo in grado di risolvere quel problema in maniera efficiente. \\
+Non esiste uno schema di public key perfetto
 \begin{enumerate}
-	\item Intercept $y$
-	\item Select $x_0 : P(X = x_0) \neq 0$
-	\item Compute $y_0 = E(pubk, x_0)$
-	\item \texttt{if} $y == y_0$ $x$ is found \texttt{else} $P(X=x_0|Y=y) = 0$
+	\item Supponiamo che l'avversario intercetti $y$
+	\item L'avversario seleziona $x_0 : P(X = x_0) \neq 0$
+	\item Calcola $y_0 = E(pubk, x_0)$
+	\item \texttt{if} $y == y_0$ $x$ è trovato \\ \texttt{else} $P(X=x_0|Y=y) = 0$
 \end{enumerate}
-
-The \textit{a-priori} and \textit{a-posteriori} probabilities are different and violate the Shannon's definition of perfect secrecy.
+Le probabilità \textit{a-priori} e \textit{a-posteriori} sono differenti e violano la definizione di Shannon di perfect secrecy.
 
 \section{RSA}
+Lo schema introduce 3 funzioni: G, E, D.
 \subsection{Key generation algorithm G}
 \begin{enumerate}
-	\item Select "large" (512/1024 bit) primes $p$ and $q$
-	\item Compute \textit{modulus} $n = p \cdot q$ and \textit{Eulero's totient} $\Phi = (p-1)\cdot(q-1)$
-	\item Compute $1 \leq e < \Phi : g.c.d(e, \Phi) = 1$ ($e$ and $\Phi$ comprimes)
-	\item Compute $1 \leq d < \Phi : e\cdot d = 1\ mod\ \Phi$, i.e. $e\cdot d = r\cdot\Phi + 1$ for some $r$
-	\item $pubk = (e,n)$ and $privk = (d,n)$
-	\item Destroy $p$ and $q$
+	\item Selezionare due numeri primi "grandi" (512/1024 bit) $p$ e $q$
+	\item Calcolare \textit{modulus} $n = p \cdot q$ e \textit{Eulero's totient} $\Phi = (p-1)\cdot(q-1)$
+	\item Calcolare $1 \leq e < \Phi : MCD(e, \Phi) = 1$ ($e$ e $\Phi$ compresse)
+	\item Calcolare $1 \leq d < \Phi : e\cdot d = 1\ mod\ \Phi$, i.e. $e\cdot d = r\cdot\Phi + 1$ per alcuni $r$
+	\item $pubk = (e,n)$ e $privk = (d,n)$
+	\item Distruggere $p$ e $q$
 \end{enumerate}
 
-\subsection{Encryption}
+\subsection{Encryption E}
 $$ x \in [0, n-1], y = x^e\ mod\ n$$
 
-\subsection{Decryption}
+\subsection{Decryption D}
 $$ y \in [0, n-1], x = y^d\ mod\ n$$
 
 \subsection{Square-and-multiply algorithm}
-This algorithm is used to perform the modular exponentiation $x^e\ mod\ n$ with a complexity of $O(k^3)$.
+Questo algoritmo è utilizzato per effettuare l'esponenziazione modulare $x^e\ mod\ n$ con una complessità di $O(k^3)$
 
 \begin{algorithm}[H]
 \begin{algorithmic}
@@ -810,13 +813,10 @@ This algorithm is used to perform the modular exponentiation $x^e\ mod\ n$ with 
 \ForAll{bit in e} 
 	\State $c \gets c^2\ mod\ n$
 	\If{bit == 1} \State $c \gets c \times x\ mod\ n$ \EndIf
-
 \EndFor
 \end{algorithmic}
 \end{algorithm}
-
-
-Efficiency is achieved choosing $e$ with few bit equal to 1, i.e. $2^{16} + 1$.
+L'efficienza è raggiunta scegliendo $e$ con pochi bit uguali a 1, ad esempio $2^{16} + 1$.
 
 \subsection{RSA problem}
 The computation of $x$, knowing $(e,n)$ and $y$, is related to the \textit{factorization} problem.
@@ -877,6 +877,8 @@ Bob decrypts ciphertext except a given ciphertext $c$. Mr. Loucipher wants to de
 \subsubsection{Countermeasure}
 Add redundancy and randomization to the original message through \textit{Optimal Asymmetric Encryption Padding} standard.
 
+\newpage
+
 \section{Digital signature}
 DS provides message integrity and message authenitication like MACs but using asymmetric key environment. Moreover, it gurantees non-repudiation property because only one party has the private key.
 
@@ -911,7 +913,9 @@ If $h$ is not collision resistance an untrusted party can:
 	\item Then claim that it actually issued $(m', \sigma)$
 \end{enumerate}
 
-\section{Certifiate}
+\newpage
+
+\section{Certificate}
 A certificate links the identifier to the public key.
 $$ CERT_A = (Alice, pubkey_A, L_A, S_{CA}(Alice, pubkey_A, L_A))$$
 
