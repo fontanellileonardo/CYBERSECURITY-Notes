@@ -819,27 +819,27 @@ Questo algoritmo è utilizzato per effettuare l'esponenziazione modulare $x^e\ m
 L'efficienza è raggiunta scegliendo $e$ con pochi bit uguali a 1, ad esempio $2^{16} + 1$.
 
 \subsection{RSA problem}
-The computation of $x$, knowing $(e,n)$ and $y$, is related to the \textit{factorization} problem.
-
-Computing the decryption exponent $d$ from the public key $(e, n)$ is computationally equivalent to factoring $n$.
+Il calcolo di $x$, conoscendo $(e,n)$ e $y$, è relativo al problema della \textit{fattorizzazione}.
+Calcolare il componente di decriptazione $d$ dalla chiave pubblica $(e,n)$ è computazionalmente equivalente a fattorizzare $n$.
 
 \subsection{RSA security}
 \subsubsection{Small plaintext problem}
-If the plaintext is too small the resulting ciphertext is equal to the plaintext.
+Se il plaintext è troppo piccolo, il ciphertext risultante è equivalente al plaintext. \\
+Ovvero, si va ad attaccare lo spazio dei messaggi: l'avversario è in grado di trovare il plaintext dopo un certo numero di iterazioni. 
+Per risolvere il problema bisogna ingrandire questo spazio, ad esempio accodando al messaggio inviato un numero randomico di una certa dimensione: questo numero è chiamato \textit{salt} e serve solo a questo scopo.
 
 \subsubsection{Malleability}
-An adversary knows $c = p^e\ mod\ n$ and it can compute
+Un avversario conosce $c = p^e\ mod\ n$ e può calcolare
 $$ c' = c \cdot s^e\ mod\ n = p^e \cdot s^e\ mod\ n = (p \cdot s)^e\ mod\ n = p'\ mod\ n $$
-where $s$ is an integer such that $g.d.c(s, n) = 1$.
+dove $s$ è un intero tale che $MCD(s, n) = 1$.
 
 \subsubsection{Low exponent attack}
-Let $e = 3$ so that $c_i = m^3\ mod\ n_i$.
-A party sends $c$ to three different receivers which compute $m^3 = c_i\ mod\ n_i$.
-If $n_1, n_2, n_3$ are pairwise comprime we can compute 
+Sia $e = 3$ tale che $c_i = m^3\ mod\ n_i$.
+Un party invia $c$ a 3 differenti riceventi che si calcolano $m^3 = c_i\ mod\ n_i$.
+Se $n_1, n_2, n_3$ sono coprimi a coppie possiamo calcolare
 $$ x = m^3\ mod\ n_1n_2n_3$$ 
-using \textit{Chinese Remainder Theorem} (CRT).
-
-Since $m^3 < n_1n_2n_3$, $x = m^3$. So an adversary compute $m$ by computing the cube root of $m^3$.
+utilizzando il \textit{Chinese Remainder Theorem} (CRT).
+Dato che $m^3 < n_1n_2n_3$, $x = m^3$. Un avversario può calcolare $m$ calcolando la radice cubica di $m^3$.
 
 \subsubsection{Common modulus attack}
 
@@ -847,8 +847,8 @@ Since $m^3 < n_1n_2n_3$, $x = m^3$. So an adversary compute $m$ by computing the
   \centering
   \includegraphics[width=0.5\textwidth]{img/common-modulus-attack}
 \end{figure}
-
-The attacker can efficiently factor $n$ from $d_5$ and then compute all $d_i$.
+Il server utilizza un modulo comune $n$ per tutte le coppie di chiavi.
+L'attaccante può fattorizzare efficientemente $n$ da $d_5$ e può poi calcolare tutti $d_i$.
 
 \subsubsection{Chosen-plaintext attack}
 
@@ -856,124 +856,161 @@ The attacker can efficiently factor $n$ from $d_5$ and then compute all $d_i$.
   \centering
   \includegraphics[width=0.5\textwidth]{img/chosen-plaintext-attack}
 \end{figure}
-
-The adversary encrypts all possible bids (e.g, $2^{32}$) until he finds a $b$ such that $E(e, b) = c$. Thus, the adversary sends a bid containing the minimal offer to win the auction: $b' = b + 1$.
+L'avversario cripta tutte le possibili offerte (per esempio $2^{32}$) finché trova un $b$ tale che $E(e, b) = c$. Quindi, l'avversario manda un'offerta contenente la minima offerta per vincere l'asta: $b' = b + 1$.
 
 \subsubsection{Adaptive chosen-plaintext attack}
-
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/chosen-ciphertext-attack}
 \end{figure}
-
-Bob decrypts ciphertext except a given ciphertext $c$. Mr. Loucipher wants to determine the ciphertext corresponding to $c$.
-
+Bob decripta ciphertext tranne un certo ciphertext $c$. Mr. Loucipher vuole determinare il ciphertext corrispondente a $c$.
 \begin{enumerate}
-	\item Mr. Loucipher selects $x$ at random, such that $gcd(x, n) = 1$, and sends Bob the quantity $\overline{c} = cx^e\ mod\ n$;
-	\item Bob decrypts it producing $\overline{m} = (\overline{c})^d = c^d x^{ed} = mx\ mod\ n$;
-	\item Mr. Loucipher determines $m$ by computing $m = \overline{m} x^{-1}\ mod\ n$.
+	\item Mr. Loucipher seleziona $x$ random, tale che $MCD(x, n) = 1$ e invia a BOB la quantità $\overline{c} = cx^e\ mod\ n$;
+	\item Bob la decripta producendo $\overline{m} = (\overline{c})^d = c^d x^{ed} = mx\ mod\ n$;
+	\item Mr. Loucipher determina $m$ calcolando $m = \overline{m} x^{-1}\ mod\ n$.
 \end{enumerate} 
 
 \subsubsection{Countermeasure}
-Add redundancy and randomization to the original message through \textit{Optimal Asymmetric Encryption Padding} standard.
+Aggiungere ridondanza e randomizzazione al messaggio originale attraverso lo standard \textit{Optimal Asymmetric Encryption Padding}.
 
 \newpage
 
 \section{Digital signature}
-DS provides message integrity and message authenitication like MACs but using asymmetric key environment. Moreover, it gurantees non-repudiation property because only one party has the private key.
-
-Anyone can verify the signature.
-
-DS can be made by using RSA:
+Digital Signature fornisce integrità e autenticazione dei messaggi, come MAC ma utilizzando un ambiente di chiavi asimmetriche. Garantisce la proprietà di non-ripudiazione perché soltanto un componente ha la chiave privata.
+Tutti possono verificare la firma. \\
+La firma digitale può essere costruita utilizzando RSA:
 \begin{enumerate}
-	\item Generate RSA key pair: public key $(e,n)$ and private key $(d,n)$
-	\item Sign: $\sigma = m^d\ mod\ n$
-	\item Verification: $m' = \sigma^e\ mod\ n$ and check if $m == m'$
+	\item Generare una coppia di chiavi RSA: chiave pubblica $(e,n)$ e chiave privata $(d,n)$
+	\item Firma: $\sigma = m^d\ mod\ n$
+	\item Verifica: $m' = \sigma^e\ mod\ n$ e controlla se $m == m'$
 \end{enumerate}
+La funzione di firma equivale alla funzione di criptazione RSA, mentre l'operazione di verifica equivale a quella di decriptazione.
+Questa è una proprietà relativa solo a RSA e non vale in generale. Restano ancora valide tutte le altre proprietà.
 
 \subsection{Properties from hash function}
+Un problema da considerare, utilizzando questo algoritmo, è che $m$ ha, in genere, una dimensione alta (pensare per esempio a documenti, file multimediali, patch ecc...)
+e quindi l'operazione di firma potrebbe risultare molto lenta. Per risolvere questo problema si possono utilizzare funzoni hash per sintetizzare $m$ e poi firmare l'hash ottenuto. \\
+La scelta di utilizzare una funzione hash per la firma digitale può comportare alcuni rischi e mettere in dubbio le garanzie di integrità, non ripudiabilità e autenticità delle firme.
+Per questo motivo è fondamentale verificare che le funzioni utilizzate rispettino alcuni requisiti:
+si fa riferimento alle proprietà indicate nel capitolo sulle funzioni hash.
 \paragraph{Pre-image resistance}
-Let $\sigma = h(m)^d\ mod\ n$. If $h$ is not pre-image resistant:
+La proprietà ci dice che dato un hash $H(x)$ deve essere difficile trovare un'altra $x'$ che abbia lo stesso hash.
+Se questa proprietà non è garantita avremo la \textit{existential forgery}.
+Sia $\sigma = h(m)^d\ mod\ n$. Se $h$ non è pre-image resistant:
 \begin{enumerate}
-	\item Select $z < n$
-	\item Compute $y = z^e\ mod\ n$
-	\item Find $m' : h(m') = y$
-	\item Claims that $z$ is the digital signature of $m'$
+	\item Selezionare $z < n$ (dimensione del messaggio)
+	\item Calcolare $y = z^e\ mod\ n$, di cui $e$ ed $n$ sono conosciuti perché provengono dalla chiave pubblica.
+	\item Trovare $m' : h(m') = y$
+	\item Possiamo affermare che $z$ è la firma digitale di $m'$
 \end{enumerate}
 
 \paragraph{Second pre-image resistance}
-Let $\sigma = h(x)^d\ mod\ n$ a digital signature of Alice. If $h$ is not 2nd-preimage resistance an adversary can claim that Alice has signed $x'$ instead of $x$.
+Sia $\sigma = h(x)^d\ mod\ n$ la firma digitale di Alice. Se $h$ non è 2nd-preimage resistance, un avversario può affermare che Alice ha firmato $x'$ piuttosto che $x$.
 
 \paragraph{Collision resistance}
-If $h$ is not collision resistance an untrusted party can:
+Se $h$ non è collision resistance, un componente non fidato può:
 \begin{enumerate}
-	\item Choose $m, m' : h(m) = h(m')$
-	\item Produce $\sigma = h(m)^d\ mod\ n$
-	\item Send $(m, \sigma)$ to Bob
-	\item Then claim that it actually issued $(m', \sigma)$
+	\item Scegliere $m, m' : h(m) = h(m')$
+	\item Produrre $\sigma = h(m)^d\ mod\ n$
+	\item Inviare $(m, \sigma)$ a Bob
+	\item E affermare che ha effettivamente emesso $(m', \sigma)$
 \end{enumerate}
 
 \newpage
 
 \section{Certificate}
-A certificate links the identifier to the public key.
+Un certificato linka l'identificatore alla chiave pubblica.
 $$ CERT_A = (Alice, pubkey_A, L_A, S_{CA}(Alice, pubkey_A, L_A))$$
+Ogni certificato ha un periodo di validità ($L_A$), dopo e prima il quale ogni firma applicata dalla persona non è valida. 
+I certificati possono essere revocati, e questo avviene quando:
+\begin{itemize}
+	\item il certificato scade
+	\item la chiave privata è stata compromessa
+\end{itemize}
+A tal proposito, ogni \textit{Certification Authority} pubblica una lista che contiene tutti i certificati revocati, chiamata \textit{Certificate Revocation List (CRL)}.
+La lista viene firmata, per ovvi motivi, dalla stessa Certification Authority. L'indirizzo a questa lista è indicato in uno dei campi del certificato stesso, tra i quali è presente anche un campo che specifica per quali scopi la chiave pubblica associata può essere utilizzata (es. firma, cifratura).
+
+\paragraph{Approfondimento su Certification Authority (CA)} È un'entità che si occupa di rilasciare i certificati, verificando l'identità del richiedente. \\
+In particolare deve:
+\begin{itemize}
+	\item verificare che il nome della persona sia associato alla chiave da certificare
+	\item verificare che la persona possa effettivamente usare la coppia di chiavi presentata
+	\item stabilire le regole e le politiche per la verifica dell'identità delle persone (non è un task semplice, ad esempio in molti stati non esiste neanche il concetto di codice fiscale)
+\end{itemize}
+La certificazione si basa sulla \textit{delega della fiducia}. Bob, ad esempio, si fida e delega la certification authority nel verificare l'identità di Alice e attestare l'autenticità della sua chiave pubblica.
+Se un certificato è firmato usando quello della Certification Authority, allora Bob si fida del certificato. \\
+Un certificato, quindi, definisce un link indissolubile tra l'identità del soggetto e la sua chiave pubblica. Tuttavia, non specifica il significato del collegamento, i possibili usi e non garantisce l'affidabilità del soggetto.
+Il modello più semplice è il \textit{Single CA}, nel quale abbiamo una Certification Authority che rilascia certificati per tutti gli utenti del sistema. \\
+I certificati hanno una scadenza, quindi sono associati ad un periodo di validità. Tuttavia, durante questo periodo, il certificato può essere revocato, e ciò succede quando:
+\begin{itemize}
+	\item la chiave privata è compromessa
+	\item il soggetto ha cambiato ruolo o cambiato l'organizzazione
+\end{itemize}
+La revoca deve essere fatta:
+\begin{itemize}
+	\item correttamente, in quanto può essere solo convalidata da entità autorizzate (quali il proprietario e l'entità di certificazione)
+	\item in tempo, deve essere diffusa a tutte le parti interessate nel minor tempo possibile
+\end{itemize}
+\subparagraph{Verifica di un certificato} Bob può verificare l'autenticità della chiave pubblica di Alice, dal suo certificato, in questo modo:
+\begin{enumerate}
+	\item Si procura la chiave pubblica della Certification Authority
+	\item Verifica la validità della chiave pubblica
+	\item Verifica la firma del certificato di Alice usando la chiave pubblica della Certification Authority
+	\item Verifica che il certificato di Alice sia valido (cioè che stia nel periodo di validità)
+	\item Verifica che il certificato non sia stato revocato
+\end{enumerate}
+Se tutte le verifiche sono positive, allora Bob può considerare la chiave pubblica di Alice valida.
 
 \subsection{Diffie-Hellman MITM solution}
-
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/dh-cert}
 \end{figure}
 
 \subsection{CA delegation}
-If Bob wants to sign certificates, he must have a certificate like this:
+Se Bob vuole una firma certificata, deve avere un certificato come questo:
 $$ CERT_B = S_{CA}(Bob, pubkey_B, ..., "CA:yes")$$
 
 \subsection{Certificate revocation}
-All the revoked certificates are listed in the \textit{Certificate Revocation List} (CRL) with the relative fields all signed by CA:
+Come detto, tutti i certificati revocati sono posti in una lista chiamata \textit{Certificate Revocation List} (CRL), tutti i campi sono firmati dalla Certification Authority:
 \begin{itemize}
 	\item serial number
-	\item revocation date
-	\item revocation reason
+	\item data di revoca
+	\item motivo di revoca
 \end{itemize}
 
 \subsection{Private key backup: Threshold Crypto}
-The idea is to split the private key into $n$ shares stored in $n$ different servers.
-For reconstructing the key, only $t : t < n$ shares are needed using, for instance, a linear polynomial algorithm.
+L'idea è quella di splittare la chiave privata in $n$ parti, archiviate in $n$ server differenti.
+Per ricostruire la chiave, sono necessarie soltanto $t : t < n$ utilizzando, per esempio, un algoritmo polinomiale lineare.
 
 \section{Perfect Forward Secrecy (PFS)}
-DEF: Disclosure of long-term secret keying material does not compromise the secrecy of the exchanged keys from earlier runs.
+DEF: la divulgazione di materiale per chiavi segrete a lungo termine non compromette la segretezza delle chiavi scambiate nelle esecuzioni precedenti.
 
 \subsection{Pre-Shared Key Ephemeral DH}
-Pre-shared key is used for authentication.
-Key $a$ and $b$ are ephemeral because they are used one time per session or message.
-
+La chiave pre-condivisa è utilizzata per l'autenticazione.
+Le chiavi $a$ e $b$ sono effimere, perché sono utilizzate una volta a sessione o messaggio.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/psk-dhe}
 \end{figure}
 
 \subsection{Ephemeral RSA}
-Private key is used for authentication.
-B generates $Tpubk$ and $Tprivk$ on the fly used to exchange the session key.
-
+La chiave privata è utilizzata per l'autenticazione.
+B genera $Tpubk$ e $Tprivk$ sul momento per scambiare la chiave di sessione.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/rsae}
 \end{figure}
-
-Note that A, at the end of the key exchange phase, has not any guarantees that B has the key in its hands.
+Notare che A, alla fine della fase di scambio delle chiavi, non ha nessuna garanzia che B abbia la chiave nelle sue mani.
 
 \subsection{Station-To-Station (STS) protocol}
-It guarantees PFS and direct authentication (or key confirmation).
+Garantisce Perfect Forward Secrecy e autenticazione diretta (o conferma della chiave).
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/sts}
 \end{figure}
-
-The pair $<Y_A,Y_B>$ is signed in order to avoid MITM attack. The encryption by means of $k$ is done just to guarantee \textit{direct authentication}.
+La coppia $<Y_A,Y_B>$ è firmata in modo da evitare attacchi MITM. Il criptaggio attraverso $k$ è fatto soltanto per garantire \textit{direct authentication},
 
 \section{BAN logic}
 \subsection{Postulate 1: message meaning rule}
