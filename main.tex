@@ -37,16 +37,14 @@
 \usepackage[hidelinks]{hyperref}
 
 \title{Cybersecurity}
-\author{Francesco Barbarulo}
+\author{Leonardo Fontanelli}
 \date{\monthyeardate\today}
 
 \begin{document}
 \pagenumbering{roman}
 
 \maketitle
-\abstract{The aim of these notes is to give some pills of every argument for written and oral tests. I have assumed that the reader has attended the lessons because these notes, by themselves, are not sufficient to have a global and profound knowledge.
-
-I wish you good luck!}
+\abstract{Queste dispense sono state prodotte a partire dalle note di Francesco Barbarulo e Antonio Le Caldare. È stato realizzato un merge delle suddette dispense e delle slide del professor Dini. È disponibile la repository Git del tex file a questo indirizzo: \texttt{\url{}} ed è possibile forkarle e integrarle con del materiale aggiuntivo per i successivi anni. Secondariamente, le appendici (che corrispondono alla parte di laboratorio) non sono state toccate e lasciate in lingua Inglese.}
 
 \tableofcontents
 
@@ -56,130 +54,186 @@ I wish you good luck!}
 
 \section{Shannon}
 \subsection{Perfect secrecy}
-A cipher has perfect secrecy if and only if:
+Uno schema di criptazione (E, D) ha la Perfect Secrecy se
 $$ \forall p \in P, c \in C : Pr(P = p | C = c) = Pr(P = p) $$
-
-In physical terms, an adversary that knows c can not say anything about the distribution of p because the distribution of P remains the same.
-
-\subsection{Theorem}
-A perfect cipher has $ |K| \geq |P| $.
-The proof is made by contradiction. Assume that:
+In pratica, conoscere il cyphertext (associato al plaintext) non aumenta le probabilità all'avversario di risalire a p, perché la distribuzione di P rimane la stessa.
+\subsection{Teorema di Shannon}
+Un cifrario perfetto ha $ |K| \geq |P| $.
+Ovvero, il numero delle chiavi non deve mai essere più piccolo del numero di plaintext producibili. \\
+La dimostrazione viene fatta per assurdo. Assumendo che:
 \begin{enumerate}
 	\item $|K| < |P|$
-	\item $|C| \geq |P|$ because E must be invertible
-	\item $|C| > |K|$ by 1. and 2.
+	\item $|C| \geq |P|$ perché la funzione E deve essere invertibile. (due plaintext non possono produrre lo stesso chipertext)
+	\item $|C| > |K|$ per le conseguenze del punto 1 e 2.
 \end{enumerate}
-Let's choose $p_0 : Pr(P = p_0) \neq 0$. However, by 3, there must exists at least $c_0$ that is not the image of $p_0$. This leads to:
+Scegliendo $p_0 : Pr(P = p_0) \neq 0$. Questo $p_0$ potrà produrre R ciphertext, uno per ognuna delle R chiavi.
+R è uguale a $|K|$, ma tuttavia, per il punto 3, deve esistere un $c_0$ che non è l'immagine di $p_0$. 
+Questo porta a:
 $$ c_0 : Pr(P = p_0 | C = c_0) = 0 $$ 
-The two probabilities are different and it does not respect the Shannon definition.
+Le due probabilità sono differenti e non rispettano la \textit{legge di Shannon}
 
 \section{One-Time Pad}
 \begin{itemize}
-	\item message $m \in \{0,1\}^t$
-	\item key $k \in \{0,1\}^t$
-	\item $E(k, m) = m \oplus k$
-	\item $D(k, c) = c \oplus k$
+	\item messaggio $m \in \{0,1\}^t$. Messaggio in chiaro di t bits.
+	\item chiave $k \in \{0,1\}^t$. Chiave di t bits scelta in maniera casuale (truly randomly chosen)
+	\item \textbf{Funzione di Encryption: }$E(k, m) = m \oplus k$
+	\item \textbf{Funzione di Decryption: }$D(k, c) = c \oplus k$
 \end{itemize}
 
-\subsection{Properties}
-Consistency property:
-
-$$ c \oplus k = (m \oplus k) \oplus k = m$$
-
-OTP has a perfect secrecy if and only if:
+\subsection{Proprietà}
 \begin{itemize}
-	\item $\forall m, m' \in M : len(m) = len(m')$
-	\item $\forall m \in M : Pr(M = m) \neq 0$
-	\item $k \xleftarrow{random} K$ and used just once
+	\item \textbf{Proprietà di consistenza:} $$ c \oplus k = (m \oplus k) \oplus k = m$$
+	\item \textbf{OTP è un cipher perfetto se:}
+	\begin{itemize}
+		\item $\forall m, m' \in M : len(m) = len(m')$. Ovvero, tutti i messaggi hanno la stessa lunghezza.
+		\item $\forall m \in M : Pr(M = m) \neq 0$
+		\item $k \xleftarrow{random} K$. Ovvero, k è scelta randomicamente ed è utilizzata solo una volta
+	\end{itemize}
 \end{itemize}
 
-\subsection{Property of XOR}
+\subsection{Proprietà dello XOR}
 \begin{itemize}
-	\item Let $Y$ a random variable on $\{0,1\}^n$
-	\item Let $X$ an \textbf{independent uniform} random variable on $\{0,1\}^n$
+	\item Sia $Y$ una variabile random su $\{0,1\}^n$
+	\item Sia $X$ variabile random \textbf{uniforme e indipendente da Y} su $\{0,1\}^n$
 \end{itemize}
-$\Rightarrow Z = Y \oplus X$ is \textbf{uniform} on $\{0,1\}^n$ 
+Allora, si può dimostrare che:
+$\Rightarrow Z = Y \oplus X$ è una variabile \textbf{uniforme} su $\{0,1\}^n$ 
 
-\paragraph{Proof}
+\paragraph{Dimostrazione}
 \begin{align}
 P(Z = 0) &= P(X = 0 \land Y = 0) \lor P(X = 1 \land Y = 1) \notag\\
 & = P(X = 0) \cdot P(Y = 0) + P(X = 1) \cdot P(Y = 1) \notag\\
 & = 0.5Y_0 + 0.5Y_1 = 0.5(Y_0 + Y_1) = 0.5 \notag
 \end{align}
 
-\subsection{Malleability problem}
-An adversary sees $c = m \oplus k$. Then, it could generate $c' = c \oplus r$.
-At the receiver:
-$$ m' = c' \oplus k = (c \oplus r) \oplus k = ((m \oplus k) \oplus r) \oplus k = m \oplus r $$
+\subsection{Proprietà di OTP}
+\begin{itemize}
+	\item \textbf{Vantaggi:}
+	\begin{enumerate}
+		\item È unconditionally secure, cioè non può essere violato anche se l'avversario ha potenza computazionale infinita.
+		\item Le operazioni di criptazione e decriptazione sono molto veloci
+	\end{enumerate}
+	\item \textbf{Svantaggi:}
+	\begin{enumerate}
+		\item Le chiavi sono molto lunghe
+		\item Ogni chiave va utilizzata una sola volta
+		\item È malleabile
+	\end{enumerate}
+\end{itemize}
 
-The perturbation $r = m \oplus m'$.
+\subsection{Problemi di OTP}
+\begin{enumerate}
+	\item Se uso la stessa chiave due volte, avrò che: $c_1 = p_1 \oplus k$, $c_2 = p_2 \oplus k$
+	Se l'avversario prova a calcolare $c_1 \oplus c_2 = p_1 \oplus k \oplus p_2 \oplus k = p_1 \oplus p2$
+	potrà avere, quindi, informazioni sul plaintext (violando Shannon). \\
+	Il caso più significativo è quello di 2 (o più) plaintext che hanno parti di testo in comune:
+	in tal caso, l'operazione di \textit{XOR} tra i due ciphertext prodotti risulterà essere 0.
+	L'avversario è quindi in grado di ottenere informazioni sui due plaintext.
+	\item Supponendo che l'avversario conosca una coppia c, p (attacco known-plaintext), in tal caso potrà calcolare:
+	$k = c \oplus p$. Se la chiave \textit{k} (che è stata compromessa), viene riutilizzata, allora l'avversario sarà in grado 
+	di decifrare il nuovo ciphertext. Questo è il secondo motivo per cui non bisogna riutilizzare le chiavi.
+	\item L'algoritmo è malleabile (come visto precedentemente): l'avversario può manipolare il ciphertext \textit{c}
+	in maniera efficace al fine di modificare il plaintext associato. Si tratta di un problema di integrità piuttosto che
+	di confidenzialità. \\
+	Un avversario vede $c = m \oplus k$. Quindi, potrebbe generare $c' = c \oplus r$.
+	Al ricevente:
+	$$ m' = c' \oplus k = (c \oplus r) \oplus k = ((m \oplus k) \oplus r) \oplus k = m \oplus r $$
+	La perturbazione $r = m \oplus m'$. \\
+	L'avversario ha, quindi, introdotto una modifica controllata \textit{r} al plaintext senza che
+	il destinatario se ne sia accorto. \\
+	Come risolvere il problema delle chiavi troppo lunghe? Possiamo utilizzare un generatore di numeri casuali, il quale output può essere controllato
+	con un seed, e usarlo per generare \textit{key stream}. I generatori reali non producono delle sequenze perfettamente randomiche,
+	infatti sono chiamati \textit{generatori di numeri pseudo-casuali}.
+	Tuttavia, in questa situazione avremo che $|k| < |p|$, la quale non rispetta il teorema di Shannon:
+	l'algoritmo non è più perfettamente sicuro. \\
+	Il trucco che si può usare, è quello di non far capire all'avversario che stiamo generando dei ciphertext a partire da un generatore di numeri pseudo-casuali.
+	L'algoritmo necessario a distinguere l'output del PRNG da uno TRG dovrebbe avere una complessità molto alta.
+	Quindi la nuova proprietà "di Shannon" da definire, va definita sulla base della complessità computazionale.
+\end{enumerate}
 
 \section{Stream ciphers}
+One-Time Pad è un caso particolare dello Stream Cipher. In quel caso, abbiamo un RNG perfetto. 
+Stream Cipher è un'approssimazione di One-Time Pad.
 \begin{itemize}
-	\item seed $k$ on $\{0,1\}^s$, the new key
-	\item \textit{key stream} on $\{0,1\}^n$
+	\item seed $k$ su $\{0,1\}^s$, la nuova chiave
+	\item \textit{key stream} su $\{0,1\}^n$
 	\item pseudo-random number generator $G : \{0,1\}^s \rightarrow \{0,1\}^n, s \ll n$
 	\item $c = E(G(k), m) = G(k) \oplus m$
 	\item $m = D(G(k), c) = G(k) \oplus c$
 \end{itemize}
+Il cipher non è perfetto per il Teorema di Shannon. 
 
-The cipher is not perfect for Shannon's Theorem. 
-
-\subsection{Computational security}
-There exist no efficient algorithm to distinguish PRNG output from a TRG output.
-
-The cipher is computational secure if and only if:
+\subsection{Sicurezza computazionale}
+Il concetto di "sicurezza computazionale" è diverso da "sicurezza perfetta", dato che quest'ultima assicura sicurezza qualsiasi sia la potenza computazionale dell'avversario.
+La sicurezza computazione è sicura dato che il miglior algoritmo conosciuto, richiederebbe un ammontare di risorse che vanno oltre le possibilità dell'avversario.
+Non esiste nessun algoritmo efficiente per distinguere un output di un PRNG da uno TRG.
+Il cifrario è computazionalmente sicuro se e solo se:
 \begin{itemize}
-	\item PRNG is \textbf{good statistic}, i.e. it must be able to generate a key stream that looks like that one generated by an uniform random process
-	\item PRNG is \textbf{unpredictable}
+	\item PRNG ha \textbf{buone statistiche}, ovvero, deve essere in grado di generare un key stream che sembri quello generato da un processo random uniforme
+	\item PRNG è \textbf{non predicibile}
 \end{itemize}
+La predicibilità è importante, perché se il generatore è predicibile, l'avversario potrà ottenere il key stream partendo da una piccola parte della chiave.
+Un esempio può venire da OTP: supponendo di ottenere la chiave dei primi n bit, se il generatore è predicibile, allora possiamo calcolare,
+con una certa probabilità, la parte di key stream precedente e successiva e ottenere, poi, il plaintext.
 
 \subsection{Pseudo-random number generator}
-
 \subsubsection{Linear Congruential Generator (LCG)}
+È un generatore molto semplice, implementato similmente nella libreria \textit{glibc} per la funzione \textit{random()}.
 \begin{align}
 & R_0 = seed \notag \\
 & R_i = A \cdot R_{i-1} + B\ mod\ p \notag
 \end{align}
+Produce streams con buone statistiche, ma è predicibile dato che è presente una relazione lineare tra i campioni. \\
+La chiave potrebbe essere la coppia $(A,B)$, che potrebbe essere scoperta se un avversario conoscesse i primi bytes del plaintext e del ciphertext.
 
-It produces good statistic streams but it is predictable since it is linear.
-
-The key could be the pair $(A,B)$ which can be discovered if an adversary knows the first bytes of the plaintext and ciphertext.
+\subsubsection{Linear Feedback Shift Register (LFSR)}
+È realizzato con dei registri, delle operazioni di shift e lo XOR. Questo algoritmo non è predicibile quanto LCG, tuttavia è periodico: una volta individuato il periodo, è possibile ricavare tutti gli altri.
+Non è quindi adatto per applicazioni sulla security.
 
 \subsubsection{Content Scrambling System (CSS)}
-It is built on LFSR:
-
+È costruito a partire da LFSR:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/css}
 \end{figure}
-
 \begin{itemize}
 	\item $seed = key =$ 5 bytes = 40 bit 
 	\item \textit{17-bit LFSR}: $1||seed[0]||seed[1]$
 	\item \textit{25-bit LFSR}: $1||seed[2]||seed[3]||seed[4]$
 \end{itemize}
-The KTP attack has a complexity of $O(2^{17})$: if an adversary knows the first 20 bytes of plaintext and ciphertext it can get the first 20 bytes of the keystream. Then it can compute the 25-bit LFSR making the difference between the 17-bit LFSR random seed and the computed keystream. Then it has to check if the 25-bit LFSR output is consistent with the polynomial, that is known.
+Provare tutte le possibili chiavi: \textbf{Exaustive Key Search} ha una complessità di $O(2^{40})$ \\
+L'attacco \textbf{Known-plaintext attack}, ha una complessità di $O(2^{17})$: se un avversario conosce i primi 20 bytes del plaintext e del ciphertext, può arrivare a conoscere i primi 20 bytes del keystream. Quindi, può calcolarsi il 25-bit LFSR andando a calcolare la differenza tra il seed random 17-bit LFSR e il keystream calcolato. Quindi, deve controllare se l'output 25-bit LFSR è consistente con il polinomiale, che è conosciuto.
 
-\subsection{WEP}
+\subsection{802.11b WEP}
 \begin{itemize}
-	\item pre-shared $k$
-	\item $iv$ on $\{0,1\}^{24}$ written in the standard, required to be fresh
-	\item $ks = RC4(k||iv)$, where RC4 is the PRNG
+	\item pre-condivisa $k$
+	\item $IV$ su $\{0,1\}^{24}$ scritto nello standard, richiesto che sia "fresco"
+	\item $ks = RC4(k||iv)$, dove RC4 è il PRNG
 	\item $m = m||crc(m)$
 	\item $c = m \oplus ks$
 \end{itemize}
-
+Come detto, ogni volta deve essere generato un nuovo vettore di inizializzazione (IV).
+Come generarlo? Con un contatore (inizializzato a zero), oppure si può generare una sequenza random con un generatore. 
+Lo standard non dice nulla riguardo a come generare il vettore, dice soltanto che $sizeof(IV) = 24 bits$. 
+Questo ha una forte implicazione: dopo $2^24$ frames, il vettore di inizializzazione ricomincia da capo, quindi il keystream tende ad essere ripetuto. 
+Questo comportamento deve essere evitato in crittografia.
 \paragraph{Drawbacks}
 \begin{enumerate}[label=\alph*.]
-	\item $ks$ only depends on $iv$. After $2^{24}$ frames it repeats ciclically and $ks$ is reused
-	\item use of CRC instead of hash function cheated by perturbation
-	\item use of related keys $k||iv, iv = 0, 1, 2, ..., 2^{24}-1$. RC4 is good unless related keys are used.
+	\item $ks$ dipende soltanto da $IV$. Come detto, dopo $2^{24}$ frames si ripete ciclicamente e $ks$ è riutilizzato.
+	\item l'utilizzo di CRC, invece di una funzione hash imbrogliata da una perturbazione.
+	\item utilizzo di "related keys" $k||iv, iv = 0, 1, 2, ..., 2^{24}-1$. RC4 è buono a meno che non vengano utilizzate chiavi "related".
 \end{enumerate}
 
 \section{Block ciphers}
-Plaintext divided in blocks of fixed length $n$:
-
+Non lavoriamo più bit a bit, ma su blocchi di bit. Si può, in tal modo, implementare un cipher mantenendo la perfect secrecy?
+La funzione E ora diventa una funzione che ha lo stesso dominio di \textit{p} ed è invertibile (mappa, quindi, ogni blocco unicamente ad un altro blocco).
+Tutti i possibili blocchi di \textit{n} bit sono $2^{n}$. Per avere un cipher perfetto dobbiamo implementare tutte le permutazioni dei blocchi, da cui il numero di chiavi è uguale a $2^{n}!$.
+La lunghezza in bit della chiave è calcolabile come $log_2 (2^{n}!) \simeq n2^{n}$.
+La lunghezza della chiave varia, quindi, in modo esponenziale rispetto al numero di bit per blocco (\textit{n}). \\
+Tuttavia, tipicamente, n è abbastanza grande per evitare che l'avversario possa effettuare un attacco a dizionario: ciò implica che, per implementare un cifratore perfetto,
+bisogna implementare un numero grande di chiavi (esponenziale). Nella pratica, quindi, non è possibile implementare la perfect secrecy nei sistemi di cifratura a blocchi. \\
+Nella pratica il cipher è considerato buono se l'avversario non riesce a distinguerlo da un true block cipher. \\
+Il plaintext è diviso in blocchi di lunghezza fissata $n$:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/block-cipher}
@@ -189,24 +243,37 @@ Plaintext divided in blocks of fixed length $n$:
 	\item $E : \{0,1\}^n \rightarrow \{0,1\}^n$
 	\item $D : \{0,1\}^n \rightarrow \{0,1\}^n$
 \end{itemize}
-E is a \textbf{permutation}.
-
-A perfect block cipher implements all possible permutations $2^n!$
-
+E è una \textbf{permutazione}.
+Un block cipher perfetto implementa tutte le possibili permutazioni $2^{n}!$
 $$\text{key size} = log_2 2^n! \approx n \times 2^n$$
-
-The key would be too large.
-In practice, the encryption function corresponding to a randomly chosen key ($E(k, x)$) should appear as a randomly chosen permutation ($\pi(x)$).
-
+La chiave sarebbe troppo grande.
+In pratica, la funzione di criptaggio che corrisponde a una chiave scelta randomicamente ($E(k, x)$), dovrebbe apparire come una permutazione scelta randomicamente ($\pi(x)$).
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/perm}
 \end{figure}
-
-The block size should be large enough to make the dictionary attack unfeasible in terms of storage complexity, i.e. if $n = 64$, and adversary should store $2^{64} \times (8 \times 2)$ bytes (8 bytes for plaintext and ciphertext).
+La grandezza del blocco dovrebbe essere grande abbastanza da rendere un attacco dizionario infattibile in termini di complessità di storage, quindi se $n = 64$, un avversario dovrebbe salvare $2^{64} \times (8 \times 2)$ bytes (8 bytes per il plaintext e ciphertext).
 
 \subsection{DES improvements}
-DES is deprecated because of the shortness of the key (56 bits).
+DES è deprecato per via della chiave che è troppo corta (56 bits). Potremmo pensare di cifrare più volte usando E con chiavi diverse: esiste uno standard che sfrutta questo metodo ed è chiamato 3DES.\\
+L'operazione di cifratura è fatta in questo modo:
+$$3E(e_1, e_2, e_3), p) = E (e_1, D(e_2, E(e_3, p)))$$
+Nel ricevitore basta effettuare l'operazione inversa. Perché si cifra, poi si decifra e poi nuovamente si decifra? 
+Serve per mantenere la compatibilità con lo standard DES (backward compatibility): basta notare che se $e_1 = e_2 = e_3$, il risultato di 3DES è lo stesso di DES usando la chiave $e_{1/2/3}$.
+La complessità dell'attacco dell'avversario, tuttavia, diventa solo $2^{118}$ e non $2^{56-3}$. \\
+Perché non si utilizza una doppia encriptazione invece di 3DES? Perché non è sicura. \\
+Questo perché la complessità dell'attacco resta la stessa di quella di DES. Ad esempio:
+$$E(e_1, E(e_2, p))$$
+L'avversario potrebbe provare ad effettuare un attacco bruteforce sulle chiavi, quindi in tal caso si troverà a generare $2^{56-2}$ chiavi.
+Tuttavia, questo è un approccio abbastanza naive, ne esiste uno più efficiente chiamato \textit{Meet-in-the-middle}: si tratta ancora di un attacco known-plain text, nella quale l'avversario conosce una coppia $(c*, p*)$. \\
+L'avversario può calcolarsi una tabella composta da:
+$$\forall i  e_i, E(e_i, p*)$$
+Successivamente, per ogni \textit{j}, può calcolare:
+$$y' = D(e_j, c*)$$
+e confrontarlo con gli elementi della tabella precedente: se i due risultati coincidono, allora $(e_i,e_j)$ è la chiave, \\
+Perché questo metodo è più efficiente di quello precedente? Perché la prima operazione richiede di calcolare e memorizzare $2^56$ coppie $(e_i, E(e_i, p*))$
+e la seconda richiede di effettuare al più $2^{56}$ operazioni di decriptazione; le due complessità, in questo caso, si sommano e non si moltiplicano. Per questo la complessità resta $O(2^{56})$,
+rendendo l'algoritmo non più sicuro di DES. Nel caso di 3DES, questo attacco non è un problema, perché la complessità sarebbe pari a $2^{112}$ e la complessità dello spazio pari a $2^{56}$.
 
 \subsubsection{2DES}
 
@@ -216,8 +283,7 @@ DES is deprecated because of the shortness of the key (56 bits).
 \end{figure}
 
 $$k = k_1 + k_2$$
-
-Even if the new key is on 112 bits, it does not improve the security because the MITM attack (KPT attack) has complexity of $O(2^{56})$ to find $k_1$ and $O(2^{56})$ to find $k_2$ comparing the encrypted text $X_L$ and the decrypted one $Y_L$. This leads to a total complexity of $O(2^{56})$. Furthermore, it halves the performance.
+Anche se la nuova chiave è su 112 bits, questa non va a migliorare la sicurezza perché l'attacco \textit{Meet-in-the-middle} (Know-Plain text) ha una complessità $O(2^{56})$ per trovare $k_1$ e $O(2^{56})$ per trovare $k_2$, comparando il testo criptato $X_L$ e quello decriptato $Y_L$. Questo porta a una complessità totale di $O(2^{56})$. In più, dimezza le performance.
 
 \subsubsection{3DES}
 
@@ -227,74 +293,86 @@ Even if the new key is on 112 bits, it does not improve the security because the
 \end{figure}
 
 $$k = k_1 + k_2 + k_3$$
-
-The new key is on 168 bits and the MITM attack has a complexity of $O(2^{56\times2}) = O(2^{112})$.
-In $EDE$ version $k_1 = k_2 = k_3$.
+La nuova chiave è su 168 bits e l'attacco \textit{Meet-in-the-middle} ha una complessità di $O(2^{56\times2}) = O(2^{112})$.
+Nella versione $EDE$ $k_1 = k_2 = k_3$.
 
 \subsubsection{Key whitening}
-It is used in strong "black box" (without internal vulberability) ciphers which use short keys.
+È utilizzato in nei cifrari detti "scatole nere" (senza vulnerabilità interne), che utilizzano chiavi piccole.
 
-It foresees only one encryption process plus pre-xor and post-xor:
+Prevede solo il processo di criptazione più pre-xor e post-xor:
 $$ c = k_2 \oplus E(k, (m \oplus k1)) $$
 
-\paragraph{Attacks complexity}
+\paragraph{Complessità degli attacchi}
 \begin{itemize}
-	\item bruteforce attack: $O(2^{k+2n})$ computational
-	\item MITM attack: $O(2^{k+n})$ computational + storage
-	\item most efficient attack: the adversary knows $2^m$ (PT-CT)-pairs (data complexity) $\Rightarrow$ $O(2^{k+n-m})$
+	\item attacco \textit{bruteforce}: $O(2^{k+2n})$ computazionale
+	\item attacco \textit{meet-in-the-middle}: $O(2^{k+n})$ computational + storage
+	\item attacco più efficiente: l'avversario conosce $2^m$ (PT-CT)-coppie (complessità dei dati) $\Rightarrow$ $O(2^{k+n-m})$
+\end{itemize}
+
+\section{Computational security vs Attack complexity}
+\subsection{Computational security}
+Un cifrario è computazionalmente (praticamente) sicuro quando, il livello percepito di computazione richiesto per romperlo, utilizzando il miglior attacco conosciuto, eccede, di un margine "di sicurezza", le risorse computazionali dell'avversario ipotizzato.
+Si assume, quindi, che l'avversario abbia una potenza computazionale limitata.
+\subsection{Attack complexity}
+La complessità di un attacco dipende da:
+\begin{itemize}
+	\item \textbf{Data Complexity:} il numero previsto di unità di dati di input richiesti
+	\item \textbf{Storage Complexity:} il numero previsto di unità di storage richieste.
+	\item \textbf{Processing Complexity:} il numero previsto di operazioni richieste per processare i dati di input e/o riempire lo spazio di storage con i dati.
+\end{itemize}
+\subsection{Computational security vs Attack complexity}
+Un block cipher è computazionalmente sicuro se:
+\begin{itemize}
+	\item La grandezza dei blocchi \textit{n} è sufficientemente grande da precludere una data analysis esaustiva 
+	\item La grandezza della chiave \textit{k} è sufficientemente grande da precludere una ricerca della chiave esaustiva
+	\item Nessun attacco conosciuto ha complessità di dati e di processing minore, rispettivamente, di $2^n$ e $2^k$.
 \end{itemize}
 
 \section{Exhaustive key search}
-With $k > n$ it is possible to find false positive keys. Given a pair $x_1$ and $y_1$, the probability that key $k$ is able to map $x_1$ in $y_1$ is:
+Con $k > n$ è possibile trovare chiavi false positive. Data una coppia $x_1$ e $y_1$, la probabilità che quella chiave $k$ sia in grado di mappare $x_1$ in $y_1$ è:
 $$ P = \frac{1}{2^n} $$
-because the algorithm can be considered secure and the ouput can be seen as an uniform random variable.
-
-Since the number of keys are $2^k$, the number of expected candidate keys is:
+questo perché l'algoritmo può essere considerato sicuro e l'output può essere visto come una variabile random uniforme.
+Dato che il numero di chiavi sono $2^k$, il numero di chiavi candidate atteso è: 
 $$ E(\#keys) = 2^k \times \frac{1}{2^n} = 2^{k-n}$$
-If I want to reduce the set of candidate keys I have to collect other pairs (related to the concept of \textit{unicity distance}). If I have $t$ plaintext-ciphertext pairs, the number of expected candidate keys will be:
+Se si vuole ridurre il set di chiavi candidate, si deve collezionare altre coppie (relativamente al concetto di \textit{unicity distance}). Se si hanno $t$ coppie plaintext-ciphertext, il numero di chiavi candidate atteso sarà:
 $$ E(\#keys) = 2^{k-tn} $$
-A multiple encryption with r-stage of encryption has $2^{rk-tn}$ candidate keys.
+Un criptaggio multiplo con r-stage di criptaggi ha $2^{rk-tn}$ chiavi candidate.
 
 \section{Confusion and diffusion}
-According to Shannon, there are two primitive operations with which strong encryption algorithms can be built:
-\begin{itemize}
-	\item \textbf{Confusion}: relationship between key and ciphertext is obscured using substitution
-	\item \textbf{Diffusion}: the influence of one plaintext symbol is spread over many ciphertext symbols with the goal of hiding statistical properties of the plaintext using permutation
+In accordo a Shannon, ci sono due operazioni primitive con cui possono essere costruiti algoritmi di criptaggio forti:
+\begin{itemize}							
+	\item \textbf{Confusion}: relazione tra chiave e ciphertext è oscurata durante la sostituzione.
+	\item \textbf{Diffusion}: l'influenza di un simbolo del plaintext è diffusa su molti simboli del ciphertext con l'obiettivo di nascondere le proprietà statistiche del plaintext, utilizzando le permutazioni.
 \end{itemize}
-These two operations must be concateneted.
+Queste due operazioni devono essere concatenate.
 
 \section{Data Encryption Standard (DES)}
 \begin{itemize}
 	\item $n = 64$
 	\item $k = 56$
 \end{itemize}
-DES is an iterative algorithm. For each block of plaintext, encryption is handled in 16 rounds which all perform the identical operation. In every round a different subkey is used and all subkeys $k_i$ are derived from the main key $k$ by the \textit{key schedule}.
+DES è un algoritmo iterativo. Per ogni blocco del plaintext, il criptaggio è gestito in 16 rounds che eseguono tutte operazioni identiche. 
+In ogni round è utilizzata una differente sotto-chiave e tutte le sotto-chiavi $k_i$ sono derivate dalla chiave principale $k$ dal \textit{key schedule}.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/key-schedule}
 \end{figure}
-
-The round function is built by means of a \textit{Feistel network}:
-
+La funzione round è costruita a partire da un \textit{Feistel network}:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.2\textwidth]{img/feistel}
 \end{figure}
-
 \begin{align}
 &L_i = R_{i-1} \notag\\
 &R_i = L_{i-1} \oplus f(R_{i-1}, k_i) \notag
 \end{align}
-
-One advantage of Feistel networks is that encryption and decryption are almost the same operation, just traversing the network in the opposite direction uning keys in reverse order.
-
+Un vantaggio del Feistel netwowk è che il criptaggio e il de-criptaggio sono praticamente le solite operazioni, semplicemente attraversare il network in direzione opposta unendo le chiavi in ordine inverso.
 \begin{align}
 &R_{i-1} = L_i \notag\\
 &L_{i-1} = R_i \oplus f(R_{i-1}, k_i) = R_i \oplus f(L_i, k_i) \notag
 \end{align}
-
-Feistel structure really only encrypts (decrypts) half of the input bits per each round.
+La struttura Feistel cripta (decripta) solo la metà dei bit di input per ogni round.
 
 \subsection{Round function \textit{f}}
 
@@ -302,78 +380,94 @@ Feistel structure really only encrypts (decrypts) half of the input bits per eac
   \centering
   \includegraphics[width=0.5\textwidth]{img/round-func}
 \end{figure}
-
-The $f$ function is a pseudo-random generator with the two input parameters $R_{i-1}$ and $k_i$. It should be unpredictable. It uses nonlinear building blocks and maps 32 input bits to 32 output bits using a 48-bit round key $k_i$, with $1 \leq i \leq 16$.
-
-\textit{Diffusion} is done on by \textit{initial permutation IP} using bytewise permutation and duplication, \textit{confusion} is made by S-boxes.
+La funzione $f$ è un preudo-random generator con due parametri di input $R_{i-1}$ e $k_i$. Dovrebbe essere non predicibile. Utilizza blocchi predefiniti non lineari e mappa 32 bits di input a 32 bits di output utilizzando una chiave "round" da 48 bit $k_i$, con $1 \leq i \leq 16$.
+La \textit{Diffusion} è fatta da una \textit{permutazione IP iniziale} utilizzando una permutazione e duplicazione bit-a-bit, \textit{confusion} è fatta da S-boxes.
 
 \subsection{DES properties}
-DES, as a good cipher, fullfills the following properties:
+DES è un buon cifrario e soddisfa le seguenti proprietà:
 \begin{itemize}
-	\item each ciphertext bit depends on all key and plaintext bits
-	\item there are not any evident statistical relationship between the plaintext and the ciphertext
-	\item the change of one bit in the plaintext (ciphertext) causes the change of the every bit in the ciphertext (plaintext) with 0.5 probability (uniform RV).
+	\item ogni bit del ciphertext dipende completamente dai bit della chiave e del plaintext
+	\item non ci sono evidenti relazioni statistiche tra il plaintext e il ciphertext
+	\item il cambiamento di un bit nel plaintext (ciphertext) causa il cambiamento di ogni bit nel ciphertext (plaintext) con probabilità 0,5 (RV uniforme).
 \end{itemize} 
+
+\section{Note sulla Criptoanalisi}
+Un buon cipher deve essere in grado di mascherare le proprietà statistiche del plaintext: se queste si ripercuotono sul ciphertext, l'avversario può ottenere informazioni sul plaintext e, in alcuni casi, quindi, anche sulla chiave.
+Un esempio storico è quello del \textit{cifrario monoalfabetico}: la chiave consiste in una tabella di lettere e la funzione di criptazione opera sostituendo le lettere del plaintext con quelle nella chiave (permutazione delle lettere). 
+L'avversario può adoperare tecniche di criptoanalisi, ad esempio, partendo dalla lingua nella quale è scritto il messaggio. 
+Questo perché, ogni lingua è caratterizzata dall'utilizzo più o meno frequente di certi caratteri, quindi l'avversario può associarli con i caratteri del plaintext più frequenti, ottenendo il plaintext e in questo caso anche parte della chiave.
+Uno spazio delle chiavi molto grande non è sufficiente (è solo condizione necessaria) a mascherare le proprietà statistiche del plaintext, quindi la funzione di criptazione deve far in modo che il ciphertext appaia come una serie di caratteri il più possibile aleatoria.
 
 \section{Encryption Modes}
 \subsection{Electronic Codebook (ECB)}
+Dividiamo il plaintext in più parti di uguale lunghezza e cifriamo ogni singola parte, indipendentemente.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/ecb}
 \end{figure}
 \paragraph{Pros}
 \begin{itemize}
-	\item No block synchronization is required
-	\item No error propagation
-	\item Can be parallelized
+	\item Non è richiesta nessuna sincronizzazione tra blocchi.
+	\item Non c'è propagazione di errori.
+	\item Può essere parallelizzata.
 \end{itemize}
 \paragraph{Cons}
 \begin{itemize}
-	\item Identical plaintext block results in identical ciphertext block: it does not hide data pattern and allows traffic analysis
-	\item it allows block re-ordering and substitution
+	\item Blocchi di plaintext identici, risultano in identici blocchi di ciphertext: non nasconde pattern di dati e consente l'analisi del traffico.
+	\item Consente il re-ordinamento dei blocchi e la sostituzione.
 \end{itemize}
+Gli svantaggi ci indicano che questo sistema è malleabile: un avversario può registrare un blocco e rimpiazzarlo in un ciphertext successivo, così da alterare, efficientemente, il plaintext associato.
+Una soluzione può essere quella di associare un timestamp al messaggio, in modo da evitare attacchi di replay: il problema persiste perché l'avversario può ancora intercettare il messaggio, modificare i blocchi che contengono le informazioni rilevanti e poi trasmettere il messaggio alterato. Una encryption mode che risolve questi problemi è CBC.
 
 \subsection{Cipherblock Chaining (CBC)}
+Prima che il blocco di plaintext corrente venga cifrato, viene fatta un'operazione di XOR con il ciphertext ottenuto dal blocco precedente.
+Per il primo blocco si usa un \textit{Initialization Vector}, il quale serve per randomizzare il ciphertext finale: CBC è, in tal senso, deterministico, ciò vuol dire che plaintext identici possono produrre ciphertext differenti a parità di chiave.
+IV è una sorta di nonce. Non sussiste più neanche il problema del riordinamento dei blocchi, in quanto questo porterebbe ad alterare l'intero ciphertext. L'IV va rigenerato ad ogni ritrasmissione (come un nonce) e può essere mandato in chiaro, anche se bisogna assicurarsi che resti integro.
+Non è necessario un RNG, può bastare anche un contatore. Tuttavia, diversamente da ECB:
+\begin{itemize}
+	\item L'algoritmo non può essere parallelizzato perché ogni operazione richiede il risultato di quella precedente.
+	\item Un errore nel blocco i-esimo si propaga in tutti i blocchi successivi.
+\end{itemize} 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/cbc}
 \end{figure}
-CBC suffers form error propagation.
 
 \subsection{Cipher Feedback (CFB)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/cfb}
 \end{figure}
-CFB is an asynchronous blockwise stream cipher becasue it depends on the previous ciphertext.
+CFB è uno stream cipher blocco a blocco asincrono, perché dipende dal ciphertext precedente.
 
 \subsection{Output Feedback (OFB)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/ofb}
 \end{figure}
-OFB is a synchronous blockwise stream cipher and it allows pre-computation because the next block does not depend on netiher $PT$ or $CT$.
+OFB è uno stream cipher blocco a blocco sincrono e consente la pre-computazione, questo perché il blocco successivo non dipende ne da $PT$ o $CT$.
 
 \subsection{Counter Mode (CTR)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/ctr}
 \end{figure}
-It gives an upper limit to the amount of data that can be encrypted.
+Da' un limite superiore all'ammontare di dati che possono essere criptati.
 
 \section{Padding (PKCS \#7)}
-Padding is used to make the plaintext length multiple of block size $n$. In all cases the ciphertext length is always greater than the plaintext. This phenomenon is called \textit{ciphertext expansion}.
+Il padding viene utilizzato per rendere la lunghezza del plaintext multipla della grandezza $n$ del blocco. In tutti i casi la lunghezza del ciphertext è sempre più grande del plaintext. Questo fenomeno è chiamato \textit{ciphertext expansion}.
 
 \subsection{Ciphertext Stealing Mode (CTS)}
-It encrypts using ECB without ciphertext expansion.
-
+Cripta utilizzando EBC senza la ciphertext expansion.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/cts}
 \end{figure}
 
-
 \section{Advanced Encryption Standard (AES)}
+Similmente a DES, anche in questo caso si usa uno schema di funzioni a round.
+Tuttavia le reti di Feistel sono sostituite con delle reti di \textit{Subs-Perms}: queste effettuano, per ogni round e in ordine, delle operazioni di byte substitution, row shift e column mix, restando comunque ancora delle funzioni invertibili. 
+Si usa ancora la \textit{key expansion}.
 \begin{itemize}
 	\item $n = 128$
 	\item $k = 128/192/256$
@@ -388,57 +482,143 @@ key lengths & \# rounds = $n_r$ \\
 256 bit & 14    
 \end{tabular}
 \end{center}
-
-AES does not have a Feistel structure. 
+AES non ha una struttura Feistel.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/aes}
 \end{figure}
-
+AES consiste di 3 \textit{layers}:
 AES consists of three \textit{layers}:
-\paragraph{Key addition layer} A 128-bit round key which has been derived from the main key in the key schedule, is XORed to the state
-\paragraph{Byte substitution layer (S-box)} It introduces \textit{confusion} by transforming nonlinearly each elemeny of the state using lookup tables
-\paragraph{Diffusion layer} It introduces \textit{diffusion} through the following operations: \textit{ShiftRows} and \textit{MixColumn}.
-
-\section{Hash function}
-It provides message integrity.
-$$ H : \{0,1\}^* \rightarrow \{0,1\}^n $$
-Collision occurs when at least two inputs have the same \textit{digest}.
-
-A secure hash function is when collisions exist but they are "difficult" to find.
-
-\subsection{Security properties}
-\paragraph{Preimage resistance or One-Wayness}
-Given a hash output $z$ it must be "difficult" to find the input $x$ such that $z = h(x)$
-\paragraph{Second Preimage Resistance or Weak Collision Resistance}
-Given an input $x$ it must be "difficult" to find $x'$ such that $h(x) = h(x')$
-\paragraph{Collision Resistance}
-It must be "difficult" to find $x$ and $x'$ such that $h(x) = h(x')$
-
-\subsection{Black box attacks}
-These attacks do not exploit the internals of the hash function:
 \begin{itemize}
-	\item Guessing attack against $2^{nd}$ preimage: $O(2^n)$
-	\item Birthday attack against $3^{rd}$ preimage: $O(2^{\frac{n}{2}})$
+	\item \textbf{Key addition layer}: Una chiave rotonda a 128-bit che è stata derivata dalla chiave principale nello schedule della chiave a cui viene applicato uno XOR allo stato.
+	\item \textbf{Byte substitution layer (S-box)}: Introduce \textit{confusion} trasformando nonlinearmente ogni elemento dello stato utilizzando tabelle lookup.
+	\item \textbf{Diffusion layer}: Introduce \textit{diffusion} attraverso le seguenti operazioni: \textit{ShiftRows} e \textit{MixColumn}.
 \end{itemize}
 
-\subsection{Merkle-Damgard scheme}
-This scheme is used to build the hash function H. If we want to build a Collision Resistant Hash Function (CRHF) we need a collision resistant $h$.
+\newpage
 
-\subsubsection{Davies-Meyer scheme}
+\section{Hash function}
+La criptazione asimmetrica ha come scopo quello di garantire la \textit{confidenzialità}. \\
+Le funzioni hash, invece, possono essere utilizzate per \textit{l'integrità} e \textit{l'autenticazione}. \\
+L'autenticazione dell'origine dei dati richiede il controllo di integrità, e viceversa.
+$$ H : \{0,1\}^* \rightarrow \{0,1\}^n $$
+Le collisioni avvengono quando almeno 2 input hanno lo stesso \textit{digest}.
+Una funzione hash sicura è quando le collisioni esistono ma sono "difficili" da trovare.
+
+\subsection{Proprietà informali}
+Una funzione hash deve rispettare, in pratica, queste proprietà:
+\begin{enumerate}
+	\item essere applicabile a messaggi di qualsiasi grandezza
+	\item l'uscita deve essere di grandezza prefissata
+	\item facile da applicare
+	\item difficile da invertire
+	\item ogni hash deve essere unico
+\end{enumerate}
+Le proprietà più problematiche da rispettare, nella realtà, sono le ultime due. L'hash non può essere matematicamente unico se il numero degli input è maggiore del numero degli output possibili:
+di conseguenza, le funzioni possono presentare degli $x_0$, $x_1$ tali che $H(x_0) = H(x_1)$, cioè una tipica situazione di \textit{collisione}. 
+Per mitigare questo problema, l'algoritmo dovrà almeno rendere molto difficile trovare una collisione.
+
+\subsection{Proprietà di sicurezza}
+\begin{itemize}
+	\item \textbf{Preimage resistance o One-Wayness}: Dato un output hash $z$, deve essere "difficile" trovare l'input $x$ tale che $z = h(x)$.
+	\item \textbf{Second Preimage Resistance o Weak Collision Resistance} Dato un input $x$ deve essere "difficile" trovare $x'$ tale che $h(x) = h(x')$.
+	\item \textbf{Collision Resistance}: Deve essere difficile trovare $x$ e $x'$ tale che $h(x) = h(x')$.
+\end{itemize}
+Generalmente, una funzione hash deve soddisfare almeno 2 su 3 di queste proprietà. \\
+Possono essere categorizzate in:
+\begin{itemize}
+	\item \textbf{One-way Hash Functions (weak one-way)}: soddisfano le proprietà di preimage e 2nd-preimage resistance.
+	\item \textbf{Collision Resistant Hash Functions (strong one-way)}: soddisfano le proprietà di 2nd-preimage e collision resistance.
+\end{itemize}
+Se una funzione hash ha la proprietà di collision resistance, è dimostrabile che questa soddisfi anche la proprietà di 2nd preimage resistance. \\
+Tuttavia, non è vero che avere la collision resistance implichi avere anche anche la preimage resistance: per questo le CRHF posseggono quasi sempre la prima proprietà.
+
+\subsection{Attacchi alle Funzioni Hash}
+L'obiettivo dell'attacco è produrre una collisione. Ci si può trovare in due situazioni:
+\begin{itemize}
+	\item \textbf{Selective Forgery}: l'avversario ha il controllo completo o parziale su $x$.
+	\item \textbf{Existential Forgery}: l'avversario non ha il controllo su $x$.
+\end{itemize}
+L'avversario non ha controllo su $x$, se l'informazione che rappresenta non è consistente o non persegue lo scopo dell'avversario. \\
+Una categoria di attacchi alle funzioni hash è quella del tipo \textbf{Black Box}, nella quale:
+\begin{itemize}
+	\item H è considerata come una scatola nera.
+	\item teniamo in considerazione solo la dimensione dell'output
+	\item H è considerata approssimatamente una variabile casuale.
+\end{itemize}
+\subsubsection{Black box attacks}
+Questi attacchi, quindi, non sfruttano le caratteristiche interne delle funzioni hash:
+\begin{itemize}
+	\item Guessing attack contro $2^{nd}$ preimage: $O(2^n)$
+	\item Birthday attack contro $3^{rd}$ preimage: $O(2^{\frac{n}{2}})$
+\end{itemize}
+
+\paragraph{Guessing Attack $O(2^n)$} 
+L'obiettivo è quello di violare la 2nd preimage resistance, partendo da un plaintext target $x_0$.
+L'algoritmo è il seguente:
+\begin{center}
+\begin{lstlisting}[language=C]
+	do 
+	   x <- random()
+	while H(x) == H(x0)
+	return x;
+\end{lstlisting}
+\end{center}
+Ogni step richiede di generare un numero random e di trovare l'hash.
+Ogni hash calcolato ha una probabilità di $1/2^n$ di essere il risultato da trovare. 
+L'algoritmo ha, quindi, una complessità di $O(2^n)$, principalmente dovuto alle iterazioni
+
+\paragraph{Birthday Attack $O\left(2^{\frac{n}{2}}\right)$}
+\begin{enumerate}
+	\item generiamo $N = 2^{\frac{n}{2}}$ messaggi/numeri casuali, che chiameremo $x_1, x_2, \ldots , x_n$.
+	\item calcoliamo l'hash per ogni messaggio, cioè $t_i = H(x_i)$, ottenendo $t_1, t_2, \ldots , t_n$.
+	\item scorriamo gli hash prodotti per individuare due hash uguali, quindi $t_i == t_j, i \neq j$.
+	\item se non troviamo nessun hash uguale, ripartiamo dal primo punto.
+\end{enumerate}
+Dal punto di vista della complessità, ogni singola iterazione è complessa $2^{\frac{n}{2}}$, tuttavia non conosciamo qual è il numero medio di iterazioni da fare prima di trovare una collisione.
+A questo punto ci viene in aiuto il:
+
+\subparagraph{Birthday Paradox}
+\begin{itemize}
+	\item \textbf{Problema 1}: Qual è la probabilità che, in una stanza dove ci sono 23 persone, almeno una sia nata il 25 Dicembre? \\
+	$\underbrace{\frac{1}{365}+\frac{1}{365}+\ldots+\frac{1}{365}}_{23 \text { volte }}=0,063$
+	\item \textbf{Problema 2}: In una stanza in cui ci sono 23 persone, qual è la probabilità che almeno 2 persone siano nate lo stesso giorno? \\
+	Per semplicità, si può risolvere il problema inverso Q (la probabilità che 2 persone non siano nate lo stesso giorno) e calcolare P come:
+	$$ Q = 1 - P $$ 
+	$$\frac{364}{365} \cdot \frac{363}{365} \cdot \ldots \cdot \frac{(364-23+1)}{365}=0,493$$
+	$$ P = 1 - Q = 0,507 $$
+	La probabilità, quindi, è nettamente superiore a quella del problema precedente.
+\end{itemize}
+
+\subsection{Costruzione di una Funzione Hash}
+
+\subsubsection{Schema Merkle-Damgard}
+Questo schema è utilizzato per costruire una funzione hash $H$. Se vogliamo costruire una \textbf{Collision Resistant Hash Function (CRHF)} si ha bisogno un $h$ resistente alle collisioni.
+
+\paragraph{Schema Davies-Meyer}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.2\textwidth]{img/davies-meyer}
 \end{figure}
-This scheme is used to build a collision resistant $h$. It is build using a block cipher (i.e. AES-128) which takes $H_i$ as input and $x_i$ as key.
-The final output is obtained by XOR operation which makes $h$ collision resistant:
+Questo schema viene utilizzato per costruire $h$ resistente alle collisioni. È costruito utilizzando un block cipher (AES-128) che prende $H_i$ come input e $x_i$ come chiave.
+L'output finale è ottenuto effettuando un'operazione di XOR che rende $h$ resistente alle collisioni:
 $$ H_{i+1} = E(x_i, H_i) \oplus H_i $$ 
+Per rendere l'attacco birthday molto meno infattibile, può essere utilizzato lo \textit{Schema Hirose}. Infatti, prevede l'utilizzo di block ciphers per poter avere un output di $2\times128$ bit.
 
-To make the birthday attack much more unfeasible the \textit{Hirose scheme} can be used. Indeed it foresees the use of two block ciphers in order to have an output of $2\times128$ bit.
+\newpage
 
 \section{Message Authentication Codes (MACs)}
-It provides message integrity and message authentication.
+MAC non viene usato per la confidenzialità, l'obiettivo è quello dell'autenticazione: come garantire che un messaggio m sia stato inviato da una certa entità? \\
+Supponiamo che Alice debba mandare a Bob un messaggio $m$: per garantire l'autenticità, Alice produce un tag $t$ e lo trasmette insieme ad $m$. 
+Per produrre $t$ usiamo una chiave precondivisa $k$ (similmente agli schemi simmetrici) come ingressi per una funzione S. Quindi:
+$$ m,t = S(k,m) \rightarrow Bob$$
+Bob verifica l'autenticità usando una funzione di verifica V:
+$$V(m,k,t) = true/false$$
+La funzione di verifica consiste in calcolare $t'$ e confrontarlo con $t$ ricevuto:
+$$t' = S(k,m)$$
+$$return\;t' == t$$
+In definitiva, MAC fornisce l'integrità del messaggio e autenticazione.
 
 \begin{figure}[H]
   \centering
@@ -446,106 +626,186 @@ It provides message integrity and message authentication.
 \end{figure}
 
 \begin{itemize}
-	\item $m$: clear message
-	\item $k$: shared key between the two parties
-	\item $t$: tag or digest or fingerprint
-	\item $S$: MAC generation algorithm
-	\item $V$: MAC verification algorithm
+	\item $m$: messaggio in chiaro
+	\item $k$: chiave condivisa tra le due parti
+	\item $t$: tag o digest o fingerprint
+	\item $S$: Algoritmo di generazione MAC
+	\item $V$: Algoritmo di verifica MAC
 \end{itemize}
 
-\subsection{MAC generation algorithm}
+\subsection{Algoritmo di generazione MAC}
 \begin{itemize}
-	\item It must be "easy"
-	\item $S : \{0,1\}^* \rightarrow \{0,1\}^n$ is an hash function
-	\item \textbf{Computational resistance property} (\textit{key non-recovery}): for a certain key $k$, given ($m_i, t_i$), where $t_i = S(k, m_i)$, it must be "difficult" to compute $(m, t) : t = S(k, m)$ for any $m \neq m_i$ without knowing $k$.
+	\item Deve essere "semplice"
+	\item $S : \{0,1\}^* \rightarrow \{0,1\}^n$ è una funzione hash				
+	\item \textbf{Computational resistance property} (\textit{key non-recovery}): per una certa chiave $k$, dato ($m_i, t_i$), dove $t_i = S(k, m_i)$, deve essere "difficile" calcolare $(m, t) : t = S(k, m)$ per ogni $m \neq m_i$ senza conoscere $k$.
 \end{itemize}
-
-MACs do not provide no-repudiation.
+In pratica:
+\begin{itemize}
+	\item L'avversario non può produrre tag per nuovi messaggi (a scelta o non)
+	\item L'avversario non può calcolare la chiave partendo dalle coppie ($m_i, t_i$)
+	\item S, per l'avversario che non conosce $k$, deve possedere le proprietà di:
+	\begin{itemize}
+		\item \textit{2nd-preimage} e \textit{collision resistance}
+		\item \textit{preimage resistance} per attacchi choosen-text
+	\end{itemize}
+	\item Non c'è nessuna proprietà da rispettare nel caso di un'entità che conosce $k$:
+	infatti ci basiamo sul fatto che la chiave sia un segreto che non vada rivelato e che entrambi le parti siano in grado di non comprometterla.
+\end{itemize}
+La chiave utilizzata per il MAC (per l'autenticazione) deve essere diversa da quella usata dal cipher simmetrico (per la confidenzialità).
 
 \subsection{MACs from hash function}
 \paragraph{Secret prefix scheme} 
 $$t = h(k||m)$$
-It is not secure because the MAC can be constructed from $m$ without knowing the key.
+Non è sicuro perché il MAC può essere costruito da $m$ senza conoscere la chiave.
 
 \paragraph{Secret postfix scheme}
 $$t = h(m||k)$$
-If an adversary finds a collision in the hash function, i.e. $m_0 : h(m) = h(m_0)$, then $$h(m||k) = h(m_0||k)$$.
+Se un avversario trova una collisione nella funzione hash, tale che $m_0 : h(m) = h(m_0)$, allora $$h(m||k) = h(m_0||k)$$.
+
+\subsection{Come costruire le funzioni MAC}
+Si possono utilizzare le seguenti categorie di funzioni:
+\begin{itemize}
+	\item \textbf{Pseudo Random Function (PRF)}
+	\begin{itemize}
+		\item \textit{CBC-MAC}
+		\item \textit{NMAC}
+		\item \textit{PMAC}
+	\end{itemize}
+	\item \textbf{Collision Resistance Hash Function (CRHF)}
+	\begin{itemize}
+		\item \textit{HMAC}
+	\end{itemize}
+\end{itemize}
 
 \paragraph{HMAC}
 $$ t = h[(k \oplus opad) || h[(k \oplus ipad) || m]]$$
-where $opad, ipad$ are fixed known seqence of bit specified in the standard.
+dove $opad, ipad$ sono sequenze di bit fissate specificate nello standard.
 
-\subsection{MACs from block ciphers: CBC-MAC}
+\paragraph{MACs from block ciphers: CBC-MAC}
+Metodo CBC:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/cbc-mac}
 \end{figure}
-The problem of this scheme is that an adversary can create another pair $(m,t)$ without knowing the key if the message size is just one block.
-It just needs to append $m \oplus t$ to the original message $m$ so that the last encryption produces the same digest with $m' = m||(m \oplus t)$:
+\subparagraph{Padding} Il padding va scelto con cura:
+\begin{itemize}
+	\item Usare degli zero è insicuro perché $pad(m)$ e $pad(m||0)$ hanno lo stesso MAC 
+	\item Il padding deve essere una funzione invertibile, quindi $\forall(m_i,m_j) : m_i \neq m_j$ \\ $pad(m_0) \neq pad(m_1)$
+\end{itemize}
+Lo standard ISO consisglia di:
+\begin{itemize}
+	\item Usare $"100\ldots00"$ come padding, l'1 individua l'inizio.
+	\item Aggiungere un blocco dummy quando la dimensione del messaggio è multipla di quella del blocco.
+\end{itemize}
+Il problema di questo schema è che un avversario può creare un'altra coppia $(m,t)$ senza conoscere la chiave, se la lunghezza del messaggio è soltanto di un blocco.
+Deve soltanto appendere $m \oplus t$ al messaggio originale $m$ cosicché l'ultimo criptaggio produce lo stesso digest con $m' = m||(m \oplus t)$:
 $$ E_k(t \oplus (m \oplus t)) = t $$
 
+\newpage
+
 \section{Key establishment}
+Come gestire il problema dello scambio delle chiavi tra due o più entità?
 \subsection{Diffie-Hellman}
-This protocol allows to share the session key without a pre-shared key.
+Questo protocollo permette di scambiare una chiave in maniera sicura anche usando un canale non sicuro.
 \begin{itemize}
-	\item $p$ is a large (2048 bit) prime number
-	\item generator $g : \forall y, 1 \leq y < p, \exists x : y = g^x\ mod\ p$
+	\item $p$ è un numero primo molto grande (2048 bit)
+	\item generatore $g : \forall y, 1 \leq y < p, \exists x : y = g^x\ mod\ p$
 \end{itemize}
-Either $p$ and $g$ are public. Each peer generates the private key and computes the public key out of it. The session key will be:
+Sia $p$ e $g$ sono pubblici. Ogni peer genera la chiave privata e calcola la chiave pubblica attraverso essa. La chiave di sessione sarà:
 $$ k_{ab} = g^{ab}\ mod\ p $$
 
-\paragraph{Discrete exponentiation}
-Given $p$, $g$ and $x$, to compute $y = g^x\ mod\ p$ is computationally easy.
+\paragraph{Discrete exponentiation} Dati $p$, $g$ e $x$, calcolare $y = g^x\ mod\ p$ è computazionalmente semplice.
 
-\paragraph{Discrete logarithm}
-Given $g$, $1 \leq y \leq p-1$, it is computationally difficult to determine $x, 1 \leq x \leq p-1 : y = g^x\ mod\ p$.
+\paragraph{Discrete logarithm} Dato $g$, $1 \leq y \leq p-1$, è computazionalmente difficile determinare  $x, 1 \leq x \leq p-1 : y = g^x\ mod\ p$.
 
-\subsubsection{Passive attack}
-For a passive attack DH is secure: a passive adversary can only see $Y = g^x\ mod\ p$. In order to get the key $x$ it must solve the \textit{discrete logarithm} problem which is "difficult".
+\subsubsection{Descrizione del protocollo nel dettaglio}
+\begin{itemize}
+	\item $p$ e $g$ sono due quantità pubbliche e conosciute da entrambi le parti.
+	\item $p$ è un numero primo molto grande (1024-2048 bit).
+	\item $g$ è un parametro tale che $1 \leq g < p$
+\end{itemize}
+\paragraph{Protocollo:}
+\begin{itemize}
+	\item \textit{Fase 1}: Alice e Bob generano, rispettivamente, due numeri randomici $a$ e $b$.
+	\item \textit{Fase 2}: Alice e Bob calcolano, rispettivamente $$y_a = g^a mod\;p$$ $$y_b = g^b mod\;p$$
+	\item \textit{Fase 3}: Entrambi si scambiano, in chiaro, i parametri $y_a$ e $y_b$
+	\item \textit{Fase 4}: Le quantità ricevute vengono elevate per il numero generato inizialmente, quindi $$Alice\:(y_b)^a = (g^b)^a\;mod\;p = g^{ab}\;mod\;p = K_{ab}$$ $$Bob\:(y_a)^b = (g^a)^b\;mod\;p = g^{ab}\;mod\;p = K_{ab}$$ \\
+	Sia Bob che Alice adesso hanno la chiave.
+	\item \textit{Fase 5}: $a$ e $b$ vengono eliminati, per garantire la sicurezza del protocollo.
+\end{itemize}
+\paragraph{Sicurezza del protocollo:} Le uniche quantità che l'avversario può conoscere sono:
+\begin{itemize}
+	\item $p,g$ perché sono pubbliche.
+	\item $y_a,y_b$ perché trasmesse in chiaro dalle 2 parti.
+\end{itemize}
+L'unica maniera per calcolare la chiave è risalire ad $a$ oppure a $b$: per calcolare $a$ è necessario trovare
+$a$ tale che $y_a = g^a\;mod\;p$ e stessa cosa per $b$ tale che $y_b = g^b\;mod\;p$. \\
+Entrambe le formule rappresentano operazioni di \textbf{discrete logarithm}, le quali, sono computazionalmente difficili da realizzare.
+
+\subsubsection{Attacchi al protocollo}
+
+\paragraph{Passive attack}
+DH è sicuro nei confronti di un attacco passivo: un avversario passivo può soltanto vedere $Y = g^x\ mod\ p$. Per recuperare la chiave $x$, deve risolvere il problema del \textit{discrete logarithm}.
 
 \subsubsection{Active attack}
-A MITM attack can break DH. An adversary can establish a session key with both parties and act as a valid party. There is nothing that links the public key $Y$ to an identifier.
+Un attacco \textit{Man-In-The-Middle (MITM)} può rompere DH. Un avversario può stabilire una chiave di sessione con entrambe le parti e agire come membro attivo. Non c'è niente che linki la chiave pubblica $Y$ ad un identificatore.
+
+\paragraph{Man-In-The-Middle (MITM)} Se l'avversario diventa attivo, cioè inizia ad alterare il flusso dei pacchetti, può effettuare un attacco di Man-in-the-middle. \\
+L'avversario si interpone, quindi, tra Alice e Bob, sostituendo i valori $y_a$ e $y_b$ trasmessi, con $y_c = g^c\;mod\;p$ ricordando che $p$ e $g$ sono pubblici, mentre $c$ è un numero casuale che viene generato dall'avversario.
+Quindi, Alice otterrà la chiave: $$(y_c)^a\;mod\;p = g^{ac}\;mod\;p = K_{ac}$$
+Bob otterrà la chiave: $$(y_c)^b\;mod\;p = g^{ab}\;mod\;p = K_{cb}$$
+A questo punto l'avversario può decifrare i messaggi di Alice (usando la chiave $K_{ab}$), per poi cifrarli con la chiave $K_cb$ e trasmetterli a Bob. 
+Lo stesso discorso può essere fatto nel senso opposto. Le due parti non si accorgono nemmeno dell'intromissione dell'avversario. \\
+Il problema, in questo caso, è che i valori $y_a$ e $y_b$ non sono associati, in alcun modo, alle identità di Alice e Bob. Quindi, un semplice database centralizzato non è sufficiente a risolvere il problema, in quanto l'avversario potrebbe alterare le chiavi trasmesse agli utenti, in uscita dal database. \\
+Questo, quindi, è un problema di autenticazione che fa sorgere la necessità di introdurre i \textit{certificati}.
+
+\newpage
 
 \section{Public key encryption}
-It is an asymmetric encryption and it needs a generator $G$ that is able to generate random quantities which correspond to the private and public keys.
-
-Public cryptography is used for key establishment.
+È un sistema di criptaggio asimmetrico e rispetto al modello simmetrico, è prevista una coppia di chiavi $pubk,privk$ invece di una sola chiave. \\
+$privk$ è utilizzata dal ricevente e non deve essere compromessa, mentre $pubk$ è disponibile a tutti. \\
+Si hanno ancora due funzioni $E$ e $D$, che vengono descritte in questo modo:
+$$c = E(pubk,m)$$
+$$m = D(privk,c)$$
+La proprietà di consistenza è descrivibile come:
+$$\forall privk,pubk \; D(privk, E(pubk,m)) = m$$
+La crittografia pubblica è utilizzata per stabilire la chiave.
 
 \subsection{Security properties}
 \begin{itemize}
-	\item Given $pubk$ and $y$ it must be "difficult" to find $x : E(pubk, x) = y$
-	\item Known $pubk$ it must be "difficult" to find $privk$
+	\item Dato $pubk$ e $y$ deve essere "difficile" trovare $x : E(pubk, x) = y$
+	\item Conoscendo $pubk$, deve essere "difficile" trovare $privk$
 \end{itemize}
-
-There not exists any perfect public key cipher:
+Per "difficile" si intende che non esiste un algoritmo in grado di risolvere quel problema in maniera efficiente. \\
+Non esiste uno schema di public key perfetto
 \begin{enumerate}
-	\item Intercept $y$
-	\item Select $x_0 : P(X = x_0) \neq 0$
-	\item Compute $y_0 = E(pubk, x_0)$
-	\item \texttt{if} $y == y_0$ $x$ is found \texttt{else} $P(X=x_0|Y=y) = 0$
+	\item Supponiamo che l'avversario intercetti $y$
+	\item L'avversario seleziona $x_0 : P(X = x_0) \neq 0$
+	\item Calcola $y_0 = E(pubk, x_0)$
+	\item \texttt{if} $y == y_0$ $x$ è trovato \\ \texttt{else} $P(X=x_0|Y=y) = 0$
 \end{enumerate}
-
-The \textit{a-priori} and \textit{a-posteriori} probabilities are different and violate the Shannon's definition of perfect secrecy.
+Le probabilità \textit{a-priori} e \textit{a-posteriori} sono differenti e violano la definizione di Shannon di perfect secrecy.
 
 \section{RSA}
+Lo schema introduce 3 funzioni: G, E, D.
 \subsection{Key generation algorithm G}
 \begin{enumerate}
-	\item Select "large" (512/1024 bit) primes $p$ and $q$
-	\item Compute \textit{modulus} $n = p \cdot q$ and \textit{Eulero's totient} $\Phi = (p-1)\cdot(q-1)$
-	\item Compute $1 \leq e < \Phi : g.c.d(e, \Phi) = 1$ ($e$ and $\Phi$ comprimes)
-	\item Compute $1 \leq d < \Phi : e\cdot d = 1\ mod\ \Phi$, i.e. $e\cdot d = r\cdot\Phi + 1$ for some $r$
-	\item $pubk = (e,n)$ and $privk = (d,n)$
-	\item Destroy $p$ and $q$
+	\item Selezionare due numeri primi "grandi" (512/1024 bit) $p$ e $q$
+	\item Calcolare \textit{modulus} $n = p \cdot q$ e \textit{Eulero's totient} $\Phi = (p-1)\cdot(q-1)$
+	\item Calcolare $1 \leq e < \Phi : MCD(e, \Phi) = 1$ ($e$ e $\Phi$ compresse)
+	\item Calcolare $1 \leq d < \Phi : e\cdot d = 1\ mod\ \Phi$, i.e. $e\cdot d = r\cdot\Phi + 1$ per alcuni $r$
+	\item $pubk = (e,n)$ e $privk = (d,n)$
+	\item Distruggere $p$ e $q$
 \end{enumerate}
 
-\subsection{Encryption}
+\subsection{Encryption E}
 $$ x \in [0, n-1], y = x^e\ mod\ n$$
 
-\subsection{Decryption}
+\subsection{Decryption D}
 $$ y \in [0, n-1], x = y^d\ mod\ n$$
 
 \subsection{Square-and-multiply algorithm}
-This algorithm is used to perform the modular exponentiation $x^e\ mod\ n$ with a complexity of $O(k^3)$.
+Questo algoritmo è utilizzato per effettuare l'esponenziazione modulare $x^e\ mod\ n$ con una complessità di $O(k^3)$
 
 \begin{algorithm}[H]
 \begin{algorithmic}
@@ -553,36 +813,33 @@ This algorithm is used to perform the modular exponentiation $x^e\ mod\ n$ with 
 \ForAll{bit in e} 
 	\State $c \gets c^2\ mod\ n$
 	\If{bit == 1} \State $c \gets c \times x\ mod\ n$ \EndIf
-
 \EndFor
 \end{algorithmic}
 \end{algorithm}
-
-
-Efficiency is achieved choosing $e$ with few bit equal to 1, i.e. $2^{16} + 1$.
+L'efficienza è raggiunta scegliendo $e$ con pochi bit uguali a 1, ad esempio $2^{16} + 1$.
 
 \subsection{RSA problem}
-The computation of $x$, knowing $(e,n)$ and $y$, is related to the \textit{factorization} problem.
-
-Computing the decryption exponent $d$ from the public key $(e, n)$ is computationally equivalent to factoring $n$.
+Il calcolo di $x$, conoscendo $(e,n)$ e $y$, è relativo al problema della \textit{fattorizzazione}.
+Calcolare il componente di decriptazione $d$ dalla chiave pubblica $(e,n)$ è computazionalmente equivalente a fattorizzare $n$.
 
 \subsection{RSA security}
 \subsubsection{Small plaintext problem}
-If the plaintext is too small the resulting ciphertext is equal to the plaintext.
+Se il plaintext è troppo piccolo, il ciphertext risultante è equivalente al plaintext. \\
+Ovvero, si va ad attaccare lo spazio dei messaggi: l'avversario è in grado di trovare il plaintext dopo un certo numero di iterazioni. 
+Per risolvere il problema bisogna ingrandire questo spazio, ad esempio accodando al messaggio inviato un numero randomico di una certa dimensione: questo numero è chiamato \textit{salt} e serve solo a questo scopo.
 
 \subsubsection{Malleability}
-An adversary knows $c = p^e\ mod\ n$ and it can compute
+Un avversario conosce $c = p^e\ mod\ n$ e può calcolare
 $$ c' = c \cdot s^e\ mod\ n = p^e \cdot s^e\ mod\ n = (p \cdot s)^e\ mod\ n = p'\ mod\ n $$
-where $s$ is an integer such that $g.d.c(s, n) = 1$.
+dove $s$ è un intero tale che $MCD(s, n) = 1$.
 
 \subsubsection{Low exponent attack}
-Let $e = 3$ so that $c_i = m^3\ mod\ n_i$.
-A party sends $c$ to three different receivers which compute $m^3 = c_i\ mod\ n_i$.
-If $n_1, n_2, n_3$ are pairwise comprime we can compute 
+Sia $e = 3$ tale che $c_i = m^3\ mod\ n_i$.
+Un party invia $c$ a 3 differenti riceventi che si calcolano $m^3 = c_i\ mod\ n_i$.
+Se $n_1, n_2, n_3$ sono coprimi a coppie possiamo calcolare
 $$ x = m^3\ mod\ n_1n_2n_3$$ 
-using \textit{Chinese Remainder Theorem} (CRT).
-
-Since $m^3 < n_1n_2n_3$, $x = m^3$. So an adversary compute $m$ by computing the cube root of $m^3$.
+utilizzando il \textit{Chinese Remainder Theorem} (CRT).
+Dato che $m^3 < n_1n_2n_3$, $x = m^3$. Un avversario può calcolare $m$ calcolando la radice cubica di $m^3$.
 
 \subsubsection{Common modulus attack}
 
@@ -590,8 +847,8 @@ Since $m^3 < n_1n_2n_3$, $x = m^3$. So an adversary compute $m$ by computing the
   \centering
   \includegraphics[width=0.5\textwidth]{img/common-modulus-attack}
 \end{figure}
-
-The attacker can efficiently factor $n$ from $d_5$ and then compute all $d_i$.
+Il server utilizza un modulo comune $n$ per tutte le coppie di chiavi.
+L'attaccante può fattorizzare efficientemente $n$ da $d_5$ e può poi calcolare tutti $d_i$.
 
 \subsubsection{Chosen-plaintext attack}
 
@@ -599,133 +856,201 @@ The attacker can efficiently factor $n$ from $d_5$ and then compute all $d_i$.
   \centering
   \includegraphics[width=0.5\textwidth]{img/chosen-plaintext-attack}
 \end{figure}
-
-The adversary encrypts all possible bids (e.g, $2^{32}$) until he finds a $b$ such that $E(e, b) = c$. Thus, the adversary sends a bid containing the minimal offer to win the auction: $b' = b + 1$.
+L'avversario cripta tutte le possibili offerte (per esempio $2^{32}$) finché trova un $b$ tale che $E(e, b) = c$. Quindi, l'avversario manda un'offerta contenente la minima offerta per vincere l'asta: $b' = b + 1$.
 
 \subsubsection{Adaptive chosen-plaintext attack}
-
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/chosen-ciphertext-attack}
 \end{figure}
-
-Bob decrypts ciphertext except a given ciphertext $c$. Mr. Loucipher wants to determine the ciphertext corresponding to $c$.
-
+Bob decripta ciphertext tranne un certo ciphertext $c$. Mr. Loucipher vuole determinare il ciphertext corrispondente a $c$.
 \begin{enumerate}
-	\item Mr. Loucipher selects $x$ at random, such that $gcd(x, n) = 1$, and sends Bob the quantity $\overline{c} = cx^e\ mod\ n$;
-	\item Bob decrypts it producing $\overline{m} = (\overline{c})^d = c^d x^{ed} = mx\ mod\ n$;
-	\item Mr. Loucipher determines $m$ by computing $m = \overline{m} x^{-1}\ mod\ n$.
+	\item Mr. Loucipher seleziona $x$ random, tale che $MCD(x, n) = 1$ e invia a BOB la quantità $\overline{c} = cx^e\ mod\ n$;
+	\item Bob la decripta producendo $\overline{m} = (\overline{c})^d = c^d x^{ed} = mx\ mod\ n$;
+	\item Mr. Loucipher determina $m$ calcolando $m = \overline{m} x^{-1}\ mod\ n$.
 \end{enumerate} 
 
 \subsubsection{Countermeasure}
-Add redundancy and randomization to the original message through \textit{Optimal Asymmetric Encryption Padding} standard.
+Aggiungere ridondanza e randomizzazione al messaggio originale attraverso lo standard \textit{Optimal Asymmetric Encryption Padding}.
+
+\newpage
 
 \section{Digital signature}
-DS provides message integrity and message authenitication like MACs but using asymmetric key environment. Moreover, it gurantees non-repudiation property because only one party has the private key.
-
-Anyone can verify the signature.
-
-DS can be made by using RSA:
+Digital Signature fornisce integrità e autenticazione dei messaggi, come MAC ma utilizzando un ambiente di chiavi asimmetriche. Garantisce la proprietà di non-ripudiazione perché soltanto un componente ha la chiave privata.
+Tutti possono verificare la firma. \\
+La firma digitale può essere costruita utilizzando RSA:
 \begin{enumerate}
-	\item Generate RSA key pair: public key $(e,n)$ and private key $(d,n)$
-	\item Sign: $\sigma = m^d\ mod\ n$
-	\item Verification: $m' = \sigma^e\ mod\ n$ and check if $m == m'$
+	\item Generare una coppia di chiavi RSA: chiave pubblica $(e,n)$ e chiave privata $(d,n)$
+	\item Firma: $\sigma = m^d\ mod\ n$
+	\item Verifica: $m' = \sigma^e\ mod\ n$ e controlla se $m == m'$
 \end{enumerate}
+La funzione di firma equivale alla funzione di criptazione RSA, mentre l'operazione di verifica equivale a quella di decriptazione.
+Questa è una proprietà relativa solo a RSA e non vale in generale. Restano ancora valide tutte le altre proprietà.
 
 \subsection{Properties from hash function}
+Un problema da considerare, utilizzando questo algoritmo, è che $m$ ha, in genere, una dimensione alta (pensare per esempio a documenti, file multimediali, patch ecc...)
+e quindi l'operazione di firma potrebbe risultare molto lenta. Per risolvere questo problema si possono utilizzare funzoni hash per sintetizzare $m$ e poi firmare l'hash ottenuto. \\
+La scelta di utilizzare una funzione hash per la firma digitale può comportare alcuni rischi e mettere in dubbio le garanzie di integrità, non ripudiabilità e autenticità delle firme.
+Per questo motivo è fondamentale verificare che le funzioni utilizzate rispettino alcuni requisiti:
+si fa riferimento alle proprietà indicate nel capitolo sulle funzioni hash.
 \paragraph{Pre-image resistance}
-Let $\sigma = h(m)^d\ mod\ n$. If $h$ is not pre-image resistant:
+La proprietà ci dice che dato un hash $H(x)$ deve essere difficile trovare un'altra $x'$ che abbia lo stesso hash.
+Se questa proprietà non è garantita avremo la \textit{existential forgery}.
+Sia $\sigma = h(m)^d\ mod\ n$. Se $h$ non è pre-image resistant:
 \begin{enumerate}
-	\item Select $z < n$
-	\item Compute $y = z^e\ mod\ n$
-	\item Find $m' : h(m') = y$
-	\item Claims that $z$ is the digital signature of $m'$
+	\item Selezionare $z < n$ (dimensione del messaggio)
+	\item Calcolare $y = z^e\ mod\ n$, di cui $e$ ed $n$ sono conosciuti perché provengono dalla chiave pubblica.
+	\item Trovare $m' : h(m') = y$
+	\item Possiamo affermare che $z$ è la firma digitale di $m'$
 \end{enumerate}
 
 \paragraph{Second pre-image resistance}
-Let $\sigma = h(x)^d\ mod\ n$ a digital signature of Alice. If $h$ is not 2nd-preimage resistance an adversary can claim that Alice has signed $x'$ instead of $x$.
+Sia $\sigma = h(x)^d\ mod\ n$ la firma digitale di Alice. Se $h$ non è 2nd-preimage resistance, un avversario può affermare che Alice ha firmato $x'$ piuttosto che $x$.
 
 \paragraph{Collision resistance}
-If $h$ is not collision resistance an untrusted party can:
+Se $h$ non è collision resistance, un componente non fidato può:
 \begin{enumerate}
-	\item Choose $m, m' : h(m) = h(m')$
-	\item Produce $\sigma = h(m)^d\ mod\ n$
-	\item Send $(m, \sigma)$ to Bob
-	\item Then claim that it actually issued $(m', \sigma)$
+	\item Scegliere $m, m' : h(m) = h(m')$
+	\item Produrre $\sigma = h(m)^d\ mod\ n$
+	\item Inviare $(m, \sigma)$ a Bob
+	\item E affermare che ha effettivamente emesso $(m', \sigma)$
 \end{enumerate}
 
-\section{Certifiate}
-A certificate links the identifier to the public key.
+\newpage
+
+\section{Certificate}
+Un certificato linka l'identificatore alla chiave pubblica.
 $$ CERT_A = (Alice, pubkey_A, L_A, S_{CA}(Alice, pubkey_A, L_A))$$
+Ogni certificato ha un periodo di validità ($L_A$), dopo e prima il quale ogni firma applicata dalla persona non è valida. 
+I certificati possono essere revocati, e questo avviene quando:
+\begin{itemize}
+	\item il certificato scade
+	\item la chiave privata è stata compromessa
+\end{itemize}
+A tal proposito, ogni \textit{Certification Authority} pubblica una lista che contiene tutti i certificati revocati, chiamata \textit{Certificate Revocation List (CRL)}.
+La lista viene firmata, per ovvi motivi, dalla stessa Certification Authority. L'indirizzo a questa lista è indicato in uno dei campi del certificato stesso, tra i quali è presente anche un campo che specifica per quali scopi la chiave pubblica associata può essere utilizzata (es. firma, cifratura).
+
+\paragraph{Approfondimento su Certification Authority (CA)} È un'entità che si occupa di rilasciare i certificati, verificando l'identità del richiedente. \\
+In particolare deve:
+\begin{itemize}
+	\item verificare che il nome della persona sia associato alla chiave da certificare
+	\item verificare che la persona possa effettivamente usare la coppia di chiavi presentata
+	\item stabilire le regole e le politiche per la verifica dell'identità delle persone (non è un task semplice, ad esempio in molti stati non esiste neanche il concetto di codice fiscale)
+\end{itemize}
+La certificazione si basa sulla \textit{delega della fiducia}. Bob, ad esempio, si fida e delega la certification authority nel verificare l'identità di Alice e attestare l'autenticità della sua chiave pubblica.
+Se un certificato è firmato usando quello della Certification Authority, allora Bob si fida del certificato. \\
+Un certificato, quindi, definisce un link indissolubile tra l'identità del soggetto e la sua chiave pubblica. Tuttavia, non specifica il significato del collegamento, i possibili usi e non garantisce l'affidabilità del soggetto.
+Il modello più semplice è il \textit{Single CA}, nel quale abbiamo una Certification Authority che rilascia certificati per tutti gli utenti del sistema. \\
+I certificati hanno una scadenza, quindi sono associati ad un periodo di validità. Tuttavia, durante questo periodo, il certificato può essere revocato, e ciò succede quando:
+\begin{itemize}
+	\item la chiave privata è compromessa
+	\item il soggetto ha cambiato ruolo o cambiato l'organizzazione
+\end{itemize}
+La revoca deve essere fatta:
+\begin{itemize}
+	\item correttamente, in quanto può essere solo convalidata da entità autorizzate (quali il proprietario e l'entità di certificazione)
+	\item in tempo, deve essere diffusa a tutte le parti interessate nel minor tempo possibile
+\end{itemize}
+\subparagraph{Verifica di un certificato} Bob può verificare l'autenticità della chiave pubblica di Alice, dal suo certificato, in questo modo:
+\begin{enumerate}
+	\item Si procura la chiave pubblica della Certification Authority
+	\item Verifica la validità della chiave pubblica
+	\item Verifica la firma del certificato di Alice usando la chiave pubblica della Certification Authority
+	\item Verifica che il certificato di Alice sia valido (cioè che stia nel periodo di validità)
+	\item Verifica che il certificato non sia stato revocato
+\end{enumerate}
+Se tutte le verifiche sono positive, allora Bob può considerare la chiave pubblica di Alice valida.
 
 \subsection{Diffie-Hellman MITM solution}
-
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/dh-cert}
 \end{figure}
 
 \subsection{CA delegation}
-If Bob wants to sign certificates, he must have a certificate like this:
+Se Bob vuole una firma certificata, deve avere un certificato come questo:
 $$ CERT_B = S_{CA}(Bob, pubkey_B, ..., "CA:yes")$$
 
 \subsection{Certificate revocation}
-All the revoked certificates are listed in the \textit{Certificate Revocation List} (CRL) with the relative fields all signed by CA:
+Come detto, tutti i certificati revocati sono posti in una lista chiamata \textit{Certificate Revocation List} (CRL), tutti i campi sono firmati dalla Certification Authority:
 \begin{itemize}
 	\item serial number
-	\item revocation date
-	\item revocation reason
+	\item data di revoca
+	\item motivo di revoca
 \end{itemize}
 
 \subsection{Private key backup: Threshold Crypto}
-The idea is to split the private key into $n$ shares stored in $n$ different servers.
-For reconstructing the key, only $t : t < n$ shares are needed using, for instance, a linear polynomial algorithm.
+L'idea è quella di splittare la chiave privata in $n$ parti, archiviate in $n$ server differenti.
+Per ricostruire la chiave, sono necessarie soltanto $t : t < n$ utilizzando, per esempio, un algoritmo polinomiale lineare.
 
 \section{Perfect Forward Secrecy (PFS)}
-DEF: Disclosure of long-term secret keying material does not compromise the secrecy of the exchanged keys from earlier runs.
+DEF: la divulgazione di materiale per chiavi segrete a lungo termine non compromette la segretezza delle chiavi scambiate nelle esecuzioni precedenti.
 
 \subsection{Pre-Shared Key Ephemeral DH}
-Pre-shared key is used for authentication.
-Key $a$ and $b$ are ephemeral because they are used one time per session or message.
-
+La chiave pre-condivisa è utilizzata per l'autenticazione.
+Le chiavi $a$ e $b$ sono effimere, perché sono utilizzate una volta a sessione o messaggio.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/psk-dhe}
 \end{figure}
 
 \subsection{Ephemeral RSA}
-Private key is used for authentication.
-B generates $Tpubk$ and $Tprivk$ on the fly used to exchange the session key.
-
+La chiave privata è utilizzata per l'autenticazione.
+B genera $Tpubk$ e $Tprivk$ sul momento per scambiare la chiave di sessione.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/rsae}
 \end{figure}
-
-Note that A, at the end of the key exchange phase, has not any guarantees that B has the key in its hands.
+Notare che A, alla fine della fase di scambio delle chiavi, non ha nessuna garanzia che B abbia la chiave nelle sue mani.
 
 \subsection{Station-To-Station (STS) protocol}
-It guarantees PFS and direct authentication (or key confirmation).
+Garantisce Perfect Forward Secrecy e autenticazione diretta (o conferma della chiave).
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/sts}
 \end{figure}
+La coppia $<Y_A,Y_B>$ è firmata in modo da evitare attacchi MITM. Il criptaggio attraverso $k$ è fatto soltanto per garantire \textit{direct authentication}.
 
-The pair $<Y_A,Y_B>$ is signed in order to avoid MITM attack. The encryption by means of $k$ is done just to guarantee \textit{direct authentication}.
+\newpage
 
 \section{BAN logic}
-\subsection{Postulate 1: message meaning rule}
+\subsection{Formalismi}
+\begin{itemize}
+	\item $P \believes Q$: P crede a X. P si comporta come se X sia vero.
+	\item $P \sees X$: P vede X.
+	\item $P \oncesaid X$: P una volta ha detto X.
+	\item $P \controls X$: P controlla X.
+	\item $\fresh{X}$: X è fresco.
+	\item $P \sharekey{K} Q$: K è la chiave pubblica condivisa tra P e Q.
+	\item $P \secret{K} Q$: K è un segreto condiviso tra P e Q.
+	\item $\pubkey{K} P$: K è la chiave pubblica di P.
+	\item $\combine{X}{Y}$: X è una combinazione con Y.
+	\item $\encrypt{X}{K}$: X è stato criptato con K.
+\end{itemize}
 
+\subsection{Concetti preliminari}
+La BAN logic considera 2 epoche: il presente ed il passato. Il presente inizia con l'inizio del protocollo. \\
+Le credenze apprese nel presente sono stabili per tutta la durata del protocollo. Mentre, credenze del passato potrebbero non essere vere nel presente. \\
+\textit{Se P dice X, allora P crede a X}
+
+\subsection{Postulate 1: message meaning rule}
 \[\frac{P \believes Q \sharekey{k} P, P \sees \encrypt{X}{k}}{P \believes Q \oncesaid X}\]
+Se K è una chiave condivisa tra P e Q, un P vede un messaggio criptato da K contenente X (e P non ha inviato quel messaggio), allora P crede che X è stato inviato da Q.
 \[\frac{P \believes Q \secret{k} P, P \sees \combine{X}{k}}{P \believes Q \oncesaid X}\]
+Se K è la chiave pubblica di Q e P vede un messaggio firmato con $K^{-1}$ contenente X, allora P crede che X sia stato inviato da Q.
 \[\frac{P \believes Q \pubkey{k} P, P \sees \encrypt{X}{k^{-1}}}{P \believes Q \oncesaid X}\]
+Se Y un segreto condiviso tra P e Q e P vede un messaggio dove Y è combinato con X (e P non ha inviato il messaggio), allora P crede che X è stato inviato da Q.
 
 \subsection{Postulate 2: Nonce verification rule}
 \[\frac{P \believes \fresh{X}, P \believes Q \oncesaid X}{P \believes Q \believes X}\]
+Se P crede che Q abbia detto X e P crede che X sia fresco, allora P crede Q e crede a X (in questa esecuzione del protocollo). \\
+Se P crede che X sia stato inviato da Q, e P crede che X sia fresco, allora P crede che Q abbia inviato X in questa istanza di esecuzione del protocollo.
 
 \subsection{Postulate 3: Jurisdiction rule}
 \[\frac{P \believes Q \believes X, P \believes Q \controls X}{P \believes X}\]
+Se P crede Q, che crede a X e P crede che Q sia un'autorità su X, allora P crede anche a X. \\
+Se P crede a Q che dice X e P ha fiducia in Q riguardo X, allora P crede anche a X.
 
 \subsection{Objectives}
 \paragraph{Key authentication}
@@ -736,18 +1061,19 @@ The pair $<Y_A,Y_B>$ is signed in order to avoid MITM attack. The encryption by 
 \[Q \believes P \believes P \sharekey{k_{PQ}} Q\]
 
 \section{Kerberos}
+
 \begin{itemize}
-	\item $k_B$ is part of the system configuration
+	\item $k_B$ è parte della configurazione del sistema
 	\item $k_A = f(password)$
-	\item Requirement: single sign-on 
+	\item Requirement: singolo sign-on 
 \end{itemize}
 
 \subsection{Protocol}
 \begin{itemize}
-	\item $L$: validity interval of $k_{AB}$
+	\item $L$: intervallo di validità di $k_{AB}$
 	\item $N_A$: nonce
 	\item $WS$: workstation IP address
-	\item $subkey$ used to encrypt data
+	\item $subkey$ utilizzato per criptare i dati
 \end{itemize}
 \begin{align}
 &M1: A \to AS: A,B,t,L,N_A,WS \notag \\
@@ -755,27 +1081,23 @@ The pair $<Y_A,Y_B>$ is signed in order to avoid MITM attack. The encryption by 
 &M3: A \to B: \{A,B,t,L,k_{AB},WS\}_{k_B}, \{A,t_A, subkey\}_{k_{AB}} \notag \\
 &M4: B \to A: \{t_A, subkey\}_{k_{AB}} \notag
 \end{align}
-
-The authenticator encypted with $k_{AB}$ proves that also A has the key $k_{AB}$. It contains a \textit{timestamp} generated everytime A wants to communicate with B.
-
-Kerberos requires synchronized clocks. Since it is not possible, the time $t_B$ in which B will receive the authenticator will be gretaer than $t_A$.
-The \textit{authenticator lifetime} $\lambda = |t_B - t_A|$ should be in the order of the quality of synchronization and in this interval the authenticator can be replayed.
+L'autenticatore, criptato con $k_{AB}$ prova che anche A ha la chiave $k_{AB}$. Contiene un \textit{timestamp} generato tutte le volte che A vuole comunicare con B.
+Kerberos richiede clocks sincronizzati. Dato che non è possibile, il tempo $t_B$ in cui B riceverà l'autenticatore sarà più grande di $t_A$.
+Il \textit{lifetime dell'autenticatore} $\lambda = |t_B - t_A|$ dovrebbe essere nell'ordine della qualità della sincronizzazione e in questo intervallo l'autenticatore può essere sostituito.
 
 \subsection{Ticket Granting Server (TGS)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/tgs}
 \end{figure}
-
-At login, A receives the \textit{Ticket Granting Ticket} (TGT) from AS in order to talk with the TGS to which A asks for \textit{Service Ticket} (ST), needed to talk with the system servers.
+Al login, A riceve il \textit{Ticket Granting Ticket} (TGT) da AS in modo da poter parlare con il TGS, a cui A chiede il \textit{Service Ticket} (ST), necessario per parlare con il sistema dei server.
 
 \subsection{Delegation problem}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.4\textwidth]{img/delegation}
 \end{figure}
-
-Let assume that a mail server MS has to store A's mails in the file server FS: MS has to operate on behalf of A.
+Assumendo che un mail server MS, debba salvare le mail di A nel file server FS: MS deve operare come se fosse A.
 
 \subsubsection{Proxy tickets}
 
@@ -783,10 +1105,8 @@ Let assume that a mail server MS has to store A's mails in the file server FS: M
   \centering
   \includegraphics[width=0.5\textwidth]{img/proxy}
 \end{figure}
-
-Proxiable TGT allows A to ask the TGS a service ticket $ST_{MS}$ and a proxiable ticket $PT_{FS}$.
-
-MS could make damage only to FS and for limited specified in the $PT$. However A has to know the number of tickets needed by MS to make it fullfill the service correctly.
+Proxiable TGT consente ad A di chiedere al TGS un ticket di servizio $ST_{MS}$ e un ticket proxiable $PT_{FS}$.
+MS potrebbe fare danno soltanto a FS per i limiti specificati nel $PT$. Tuttavia, A deve conoscere il numero di ticket necessari da MS per completare il servizio correttamente.
 
 \subsubsection{Forwardable TGT}
 
@@ -794,10 +1114,8 @@ MS could make damage only to FS and for limited specified in the $PT$. However A
   \centering
   \includegraphics[width=0.5\textwidth]{img/forward}
 \end{figure}
-
-Forwardable TGT allows A to ask the TGS a TGT for MS. MS will use this TGT to ask TGS any $ST$ it needs.
-
-A has not to know in advance the number of tickets for MS, but if MS gets compromised it can abuse of it.
+Forwardable TGT consente ad A di richiedere al TGS un TGT per MS. MS utilizzerà questo THT per chiedere a TGS ogni $ST$ di cui ha bisogno.
+A non deve conoscere in anticipo il numero di ticket per MS, ma se MS si compromette può abusarne
 
 \subsubsection{Referral TGT}
 
@@ -805,7 +1123,7 @@ A has not to know in advance the number of tickets for MS, but if MS gets compro
   \centering
   \includegraphics[width=0.3\textwidth]{img/realms}
 \end{figure}
-Referral TGT allows A to ask to a TGS of another \textit{realm} a $ST$ to interact with a server of that realm.
+Referral TGT consente ad A di richiedere ad un TGS di un altro \textit{regno} un $ST$ per interagire con un server di quel regno
 
 \newpage
 
@@ -1085,7 +1403,6 @@ The main functionalities of anti-virus software are:
 	\item Remove malware's infection.
 \end{enumerate}
 The first two features require the ability to recognize malware from legitimate software. Modern anti-virus software has other features, among which firewall, intrusion detection, anti-spam, and anti-phishing.
-
 \subsubsection{Fred Cohen's result}
 Fred Cohen (the inventor of the word “computer virus”) developed the following theorem:
 \begin{center}
