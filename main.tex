@@ -44,7 +44,7 @@
 \pagenumbering{roman}
 
 \maketitle
-\abstract{Queste dispense sono state prodotte a partire dalle note di Francesco Barbarulo e Antonio Le Caldare. È stato realizzato un merge delle suddette dispense e delle slide del professor Dini. È disponibile la repository Git del tex file a questo indirizzo: \texttt{\url{}} ed è possibile forkarle e integrarle con del materiale aggiuntivo per i successivi anni.}
+\abstract{Queste dispense sono state prodotte a partire dalle note di Francesco Barbarulo e Antonio Le Caldare. È stato realizzato un merge delle suddette dispense e delle slide del professor Dini. È disponibile la repository Git del tex file a questo indirizzo: \texttt{\url{}} ed è possibile forkarle e integrarle con del materiale aggiuntivo per i successivi anni. Secondariamente, le appendici (che corrispondono alla parte di laboratorio) non sono state toccate e lasciate in lingua Inglese.}
 
 \tableofcontents
 
@@ -1010,20 +1010,47 @@ Garantisce Perfect Forward Secrecy e autenticazione diretta (o conferma della ch
   \centering
   \includegraphics[width=0.5\textwidth]{img/sts}
 \end{figure}
-La coppia $<Y_A,Y_B>$ è firmata in modo da evitare attacchi MITM. Il criptaggio attraverso $k$ è fatto soltanto per garantire \textit{direct authentication},
+La coppia $<Y_A,Y_B>$ è firmata in modo da evitare attacchi MITM. Il criptaggio attraverso $k$ è fatto soltanto per garantire \textit{direct authentication}.
+
+\newpage
 
 \section{BAN logic}
-\subsection{Postulate 1: message meaning rule}
+\subsection{Formalismi}
+\begin{itemize}
+	\item $P \believes Q$: P crede a X. P si comporta come se X sia vero.
+	\item $P \sees X$: P vede X.
+	\item $P \oncesaid X$: P una volta ha detto X.
+	\item $P \controls X$: P controlla X.
+	\item $\fresh{X}$: X è fresco.
+	\item $P \sharekey{K} Q$: K è la chiave pubblica condivisa tra P e Q.
+	\item $P \secret{K} Q$: K è un segreto condiviso tra P e Q.
+	\item $\pubkey{K} P$: K è la chiave pubblica di P.
+	\item $\combine{X}{Y}$: X è una combinazione con Y.
+	\item $\encrypt{X}{K}$: X è stato criptato con K.
+\end{itemize}
 
+\subsection{Concetti preliminari}
+La BAN logic considera 2 epoche: il presente ed il passato. Il presente inizia con l'inizio del protocollo. \\
+Le credenze apprese nel presente sono stabili per tutta la durata del protocollo. Mentre, credenze del passato potrebbero non essere vere nel presente. \\
+\textit{Se P dice X, allora P crede a X}
+
+\subsection{Postulate 1: message meaning rule}
 \[\frac{P \believes Q \sharekey{k} P, P \sees \encrypt{X}{k}}{P \believes Q \oncesaid X}\]
+Se K è una chiave condivisa tra P e Q, un P vede un messaggio criptato da K contenente X (e P non ha inviato quel messaggio), allora P crede che X è stato inviato da Q.
 \[\frac{P \believes Q \secret{k} P, P \sees \combine{X}{k}}{P \believes Q \oncesaid X}\]
+Se K è la chiave pubblica di Q e P vede un messaggio firmato con $K^{-1}$ contenente X, allora P crede che X sia stato inviato da Q.
 \[\frac{P \believes Q \pubkey{k} P, P \sees \encrypt{X}{k^{-1}}}{P \believes Q \oncesaid X}\]
+Se Y un segreto condiviso tra P e Q e P vede un messaggio dove Y è combinato con X (e P non ha inviato il messaggio), allora P crede che X è stato inviato da Q.
 
 \subsection{Postulate 2: Nonce verification rule}
 \[\frac{P \believes \fresh{X}, P \believes Q \oncesaid X}{P \believes Q \believes X}\]
+Se P crede che Q abbia detto X e P crede che X sia fresco, allora P crede Q e crede a X (in questa esecuzione del protocollo). \\
+Se P crede che X sia stato inviato da Q, e P crede che X sia fresco, allora P crede che Q abbia inviato X in questa istanza di esecuzione del protocollo.
 
 \subsection{Postulate 3: Jurisdiction rule}
 \[\frac{P \believes Q \believes X, P \believes Q \controls X}{P \believes X}\]
+Se P crede Q, che crede a X e P crede che Q sia un'autorità su X, allora P crede anche a X. \\
+Se P crede a Q che dice X e P ha fiducia in Q riguardo X, allora P crede anche a X.
 
 \subsection{Objectives}
 \paragraph{Key authentication}
@@ -1034,18 +1061,19 @@ La coppia $<Y_A,Y_B>$ è firmata in modo da evitare attacchi MITM. Il criptaggio
 \[Q \believes P \believes P \sharekey{k_{PQ}} Q\]
 
 \section{Kerberos}
+
 \begin{itemize}
-	\item $k_B$ is part of the system configuration
+	\item $k_B$ è parte della configurazione del sistema
 	\item $k_A = f(password)$
-	\item Requirement: single sign-on 
+	\item Requirement: singolo sign-on 
 \end{itemize}
 
 \subsection{Protocol}
 \begin{itemize}
-	\item $L$: validity interval of $k_{AB}$
+	\item $L$: intervallo di validità di $k_{AB}$
 	\item $N_A$: nonce
 	\item $WS$: workstation IP address
-	\item $subkey$ used to encrypt data
+	\item $subkey$ utilizzato per criptare i dati
 \end{itemize}
 \begin{align}
 &M1: A \to AS: A,B,t,L,N_A,WS \notag \\
@@ -1053,27 +1081,23 @@ La coppia $<Y_A,Y_B>$ è firmata in modo da evitare attacchi MITM. Il criptaggio
 &M3: A \to B: \{A,B,t,L,k_{AB},WS\}_{k_B}, \{A,t_A, subkey\}_{k_{AB}} \notag \\
 &M4: B \to A: \{t_A, subkey\}_{k_{AB}} \notag
 \end{align}
-
-The authenticator encypted with $k_{AB}$ proves that also A has the key $k_{AB}$. It contains a \textit{timestamp} generated everytime A wants to communicate with B.
-
-Kerberos requires synchronized clocks. Since it is not possible, the time $t_B$ in which B will receive the authenticator will be gretaer than $t_A$.
-The \textit{authenticator lifetime} $\lambda = |t_B - t_A|$ should be in the order of the quality of synchronization and in this interval the authenticator can be replayed.
+L'autenticatore, criptato con $k_{AB}$ prova che anche A ha la chiave $k_{AB}$. Contiene un \textit{timestamp} generato tutte le volte che A vuole comunicare con B.
+Kerberos richiede clocks sincronizzati. Dato che non è possibile, il tempo $t_B$ in cui B riceverà l'autenticatore sarà più grande di $t_A$.
+Il \textit{lifetime dell'autenticatore} $\lambda = |t_B - t_A|$ dovrebbe essere nell'ordine della qualità della sincronizzazione e in questo intervallo l'autenticatore può essere sostituito.
 
 \subsection{Ticket Granting Server (TGS)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/tgs}
 \end{figure}
-
-At login, A receives the \textit{Ticket Granting Ticket} (TGT) from AS in order to talk with the TGS to which A asks for \textit{Service Ticket} (ST), needed to talk with the system servers.
+Al login, A riceve il \textit{Ticket Granting Ticket} (TGT) da AS in modo da poter parlare con il TGS, a cui A chiede il \textit{Service Ticket} (ST), necessario per parlare con il sistema dei server.
 
 \subsection{Delegation problem}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.4\textwidth]{img/delegation}
 \end{figure}
-
-Let assume that a mail server MS has to store A's mails in the file server FS: MS has to operate on behalf of A.
+Assumendo che un mail server MS, debba salvare le mail di A nel file server FS: MS deve operare come se fosse A.
 
 \subsubsection{Proxy tickets}
 
@@ -1081,10 +1105,8 @@ Let assume that a mail server MS has to store A's mails in the file server FS: M
   \centering
   \includegraphics[width=0.5\textwidth]{img/proxy}
 \end{figure}
-
-Proxiable TGT allows A to ask the TGS a service ticket $ST_{MS}$ and a proxiable ticket $PT_{FS}$.
-
-MS could make damage only to FS and for limited specified in the $PT$. However A has to know the number of tickets needed by MS to make it fullfill the service correctly.
+Proxiable TGT consente ad A di chiedere al TGS un ticket di servizio $ST_{MS}$ e un ticket proxiable $PT_{FS}$.
+MS potrebbe fare danno soltanto a FS per i limiti specificati nel $PT$. Tuttavia, A deve conoscere il numero di ticket necessari da MS per completare il servizio correttamente.
 
 \subsubsection{Forwardable TGT}
 
@@ -1092,10 +1114,8 @@ MS could make damage only to FS and for limited specified in the $PT$. However A
   \centering
   \includegraphics[width=0.5\textwidth]{img/forward}
 \end{figure}
-
-Forwardable TGT allows A to ask the TGS a TGT for MS. MS will use this TGT to ask TGS any $ST$ it needs.
-
-A has not to know in advance the number of tickets for MS, but if MS gets compromised it can abuse of it.
+Forwardable TGT consente ad A di richiedere al TGS un TGT per MS. MS utilizzerà questo THT per chiedere a TGS ogni $ST$ di cui ha bisogno.
+A non deve conoscere in anticipo il numero di ticket per MS, ma se MS si compromette può abusarne
 
 \subsubsection{Referral TGT}
 
@@ -1103,7 +1123,7 @@ A has not to know in advance the number of tickets for MS, but if MS gets compro
   \centering
   \includegraphics[width=0.3\textwidth]{img/realms}
 \end{figure}
-Referral TGT allows A to ask to a TGS of another \textit{realm} a $ST$ to interact with a server of that realm.
+Referral TGT consente ad A di richiedere ad un TGS di un altro \textit{regno} un $ST$ per interagire con un server di quel regno
 
 \newpage
 
