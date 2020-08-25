@@ -342,10 +342,11 @@ Un criptaggio multiplo con r-stage di criptaggi ha $2^{rk-tn}$ chiavi candidate.
 \section{Confusion and diffusion}
 In accordo a Shannon, ci sono due operazioni primitive con cui possono essere costruiti algoritmi di criptaggio forti:
 \begin{itemize}							
-	\item \textbf{Confusion}: relazione tra chiave e ciphertext è oscurata durante la sostituzione.
+	\item \textbf{Confusion}: operazione di criptaggio dove la relazione tra chiave e ciphertext è oscurata.
 	\item \textbf{Diffusion}: l'influenza di un simbolo del plaintext è diffusa su molti simboli del ciphertext con l'obiettivo di nascondere le proprietà statistiche del plaintext, utilizzando le permutazioni.
 \end{itemize}
-Queste due operazioni devono essere concatenate.
+I block cipher buoni dovrebbero avere \textit{confusion} e \textit{diffusion}. Se ce n'è soltanto uno dei due, il block cipher sarà rotto.
+Quindi, queste due funzioni devono essere usate in combinazione, concatenate.
 
 \section{Data Encryption Standard (DES)}
 \begin{itemize}
