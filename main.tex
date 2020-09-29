@@ -53,14 +53,53 @@
 
 \pagenumbering{arabic}
 
-\section{Shannon}
-\subsection{Perfect secrecy}
+\section{Symmetric Encryption}
+
+\subsection{Principio di Kerchoff}
+Un sistema di criptazione deve essere sicuro finché non viene desecretata la chiave. Il sistema deve basarsi solo sulla segretezza della chiave.
+
+\subsection{Definizione di Cipher}
+Un cipher definito su: $k$ insieme delle chiavi, $P$ insieme del plaintext, $C$ insieme dei ciphertext e una coppia di "efficienti" algoritmi $(E,D)$ tali per cui:
+$$ E: PxK \rightarrow C$$
+L'algoritmo $E$ prende come input il plaintext (testo in chiaro) e una chiave $k$ per produrre un Ciphertext $c$ (testo cifrato).
+$$ D: CxK \rightarrow P$$
+L'algoritmo $D$ prende come input il Ciphertext $c$ e la chiave $k$ per riottenere il Plaintext originale. \\
+$E$ può essere randomizzata, $D$ è sempre deterministica. \\
+Da queste definizioni, possiamo definire un'equazione di consistenza:
+$$\forall p \in P, k \in K : D(k,E(k,p)) = p$$
+
+\subsection{Sicurezza di un cipher (definizione informale)}
+Un cifrario simmetrico è sicuro \textit{se e solo se} per ogni coppia $(p,c)$:
+\begin{enumerate}
+	\item Dato $c$, è "difficile" determinare $p$ senza conoscere $k$ e viceversa. \textbf{(cipher-text only attack)}
+	\item Dato $c$ e $p$ è "difficile" determinare $k$, anche se è utilizzata solo una volta. \textbf{(known plaintext attack)}
+	\item L'avversario riesce a determinare $c$ partendo da un plaintext $p$ arbitrario. \textbf{(choosen-plaintext attack)}
+\end{enumerate}
+Per \textit{difficile} si intende che non esiste un algoritmo efficiente in grado di trovare una soluzione in un tempo accettabile.
+
+\subsection{Shannon}
+L'idea di Shannon era che il ciphertext non doveva rivelare nessuna informazione sul plaintext.
+\subsubsection{Perfect secrecy}
 Uno schema di criptazione (E, D) ha la Perfect Secrecy se
 $$ \forall p \in P, c \in C : Pr(P = p | C = c) = Pr(P = p) $$
-In pratica, conoscere il cyphertext (associato al plaintext) non aumenta le probabilità all'avversario di risalire a p, perché la distribuzione di P rimane la stessa.
-\subsection{Teorema di Shannon}
+In pratica, conoscere il cyphertext (associato al plaintext) non aumenta le probabilità all'avversario di risalire a p, perché la distribuzione di P rimane la stessa. \\
+Un cifrario, quindi, è perfetto se la probabilità a priori che il mittente invii un messaggio $p$, è pari alla probabilità a posteriori che il messaggio inviato, sia effettivamente $p$, se il crittogramma $c$ transita sul canale. \\
+Un'immediata conseguenza della definizione è che, impiegando un cifrario perfetto, la conoscenza complessiva dell'attaccante, non cambia dopo che egli ha osservato un crittogramma arbitrario $c$, transitare sul canale. \\
+Assumendo che:
+\begin{itemize}
+	\item Il cifrario non sia perfetto.
+	\item $P_r(P=p) = a$ con $0 < a < 1$
+\end{itemize} 
+Queste assunzioni implicano: $P_r(P=p | C=c) \neq P_r(P=p)$, quindi si possono verificare 3 casi:
+\begin{enumerate}
+	\item Se $P_r(P=p | C=c) = 0$ l'attaccante, osservando $c$, deduce che il messaggio spedito non è $m$, mentre prima sapeva che sarebbe potuto transitare $m$ con probabilità $a$.
+	\item Se $P_r(P=p | C=c) = 1$ si può addirittura dedurre che il messaggio spedito è proprio m.
+	\item In tutti i casi intermedi, l'attaccante raffina la sua conoscenza sul possibile messaggio spedito. La conoscenza del crittoanalista rimane quindi inalterata se e solo se $P_r(P=p | C=c) = P_r(P_p)$.
+\end{enumerate}
+\subsubsection{Teorema di Shannon}
 Un cifrario perfetto ha $ |K| \geq |P| $.
 Ovvero, il numero delle chiavi non deve mai essere più piccolo del numero di plaintext producibili. \\
+È una condizione \textbf{necessaria} ma non sufficiente. \\
 La dimostrazione viene fatta per assurdo. Assumendo che:
 \begin{enumerate}
 	\item $|K| < |P|$
@@ -73,7 +112,11 @@ Questo porta a:
 $$ c_0 : Pr(P = p_0 | C = c_0) = 0 $$ 
 Le due probabilità sono differenti e non rispettano la \textit{legge di Shannon}
 
-\section{One-Time Pad}
+\subsection{One-Time Pad}
+Claude Shannon (1917) formalizzò, quindi, il processo crittografico perfetto, mediante un modello matematico e concluse, che il cifrario inventato da Vernam, possedeva le proprietà per essere perfetto.
+Il cifrario di Vernam, è detto anche \textbf{One-time Pad}. Questo nome, si riferisce alla sequenza della chiave, come se fosse scritta su un blocco di appunti (pad), e indica come tale sequenza, venga progressivamente utilizzata, per la cifratura e non sia riutilizzabile (one-time).
+Fu usato, intensivamente, durante la Guerra Fredda, da spie della CIA e del KGB, ma anche dalla cosiddetta Linea Rossa, il famoso collegamento telefonico diretto Washington - Mosca. \\
+
 \begin{itemize}
 	\item messaggio $m \in \{0,1\}^t$. Messaggio in chiaro di t bits.
 	\item chiave $k \in \{0,1\}^t$. Chiave di t bits scelta in maniera casuale (truly randomly chosen)
@@ -81,7 +124,7 @@ Le due probabilità sono differenti e non rispettano la \textit{legge di Shannon
 	\item \textbf{Funzione di Decryption: }$D(k, c) = c \oplus k$
 \end{itemize}
 
-\subsection{Proprietà}
+\subsubsection{Proprietà}
 \begin{itemize}
 	\item \textbf{Proprietà di consistenza:} $$ c \oplus k = (m \oplus k) \oplus k = m$$
 	\item \textbf{OTP è un cipher perfetto se:}
@@ -92,7 +135,7 @@ Le due probabilità sono differenti e non rispettano la \textit{legge di Shannon
 	\end{itemize}
 \end{itemize}
 
-\subsection{Proprietà dello XOR}
+\subsubsection{Proprietà dello XOR}
 \begin{itemize}
 	\item Sia $Y$ una variabile random su $\{0,1\}^n$
 	\item Sia $X$ variabile random \textbf{uniforme e indipendente da Y} su $\{0,1\}^n$
@@ -107,12 +150,12 @@ P(Z = 0) &= P(X = 0 \land Y = 0) \lor P(X = 1 \land Y = 1) \notag\\
 & = 0.5Y_0 + 0.5Y_1 = 0.5(Y_0 + Y_1) = 0.5 \notag
 \end{align}
 
-\subsection{Proprietà di OTP}
+\subsubsection{Proprietà di OTP}
 \begin{itemize}
 	\item \textbf{Vantaggi:}
 	\begin{enumerate}
 		\item È unconditionally secure, cioè non può essere violato anche se l'avversario ha potenza computazionale infinita.
-		\item Le operazioni di criptazione e decriptazione sono molto veloci
+		\item Le operazioni di criptazione e decriptazione sono molto veloci. In quanto basta eseguire una semplice operazione di XOR bit a bit.
 	\end{enumerate}
 	\item \textbf{Svantaggi:}
 	\begin{enumerate}
@@ -122,7 +165,7 @@ P(Z = 0) &= P(X = 0 \land Y = 0) \lor P(X = 1 \land Y = 1) \notag\\
 	\end{enumerate}
 \end{itemize}
 
-\subsection{Problemi di OTP}
+\subsubsection{Problemi di OTP}
 \begin{enumerate}
 	\item Se uso la stessa chiave due volte, avrò che: $c_1 = p_1 \oplus k$, $c_2 = p_2 \oplus k$
 	Se l'avversario prova a calcolare $c_1 \oplus c_2 = p_1 \oplus k \oplus p_2 \oplus k = p_1 \oplus p2$
@@ -152,19 +195,22 @@ P(Z = 0) &= P(X = 0 \land Y = 0) \lor P(X = 1 \land Y = 1) \notag\\
 	Quindi la nuova proprietà "di Shannon" da definire, va definita sulla base della complessità computazionale.
 \end{enumerate}
 
-\section{Stream ciphers}
+\subsection{Stream ciphers}
 One-Time Pad è un caso particolare dello Stream Cipher. In quel caso, abbiamo un RNG perfetto. 
-Stream Cipher è un'approssimazione di One-Time Pad.
+Stream Cipher è un'approssimazione di One-Time Pad. \\
+L'idea è quella di sostituire la chiave random con una chiave pseudo-random. Il generatore pseudo-random $G$, è una funzione efficiente e deterministica. \\
+Un generatore pseudo-casuale, è un algoritmo che, partendo da un valore numerico iniziale, scelto arbitrariamente \textit{(seed)}, genera una sequenza di bit, apparentemente casuali \textit{(key-stream)}.
 \begin{itemize}
-	\item seed $k$ su $\{0,1\}^s$, la nuova chiave
+	\item seed $k$ su $\{0,1\}^s$
 	\item \textit{key stream} su $\{0,1\}^n$
 	\item pseudo-random number generator $G : \{0,1\}^s \rightarrow \{0,1\}^n, s \ll n$
 	\item $c = E(G(k), m) = G(k) \oplus m$
 	\item $m = D(G(k), c) = G(k) \oplus c$
 \end{itemize}
-Il cipher non è perfetto per il Teorema di Shannon. 
+Il cipher non è perfetto per il Teorema di Shannon, perdo la caratteristica di sicurezza perfetta, per la quale la chiave deve essere grande quanto il messaggio. \\
+Si necessita quindi di una nuova definizione di sicurezza:
 
-\subsection{Sicurezza computazionale}
+\subsubsection{Sicurezza computazionale}
 Il concetto di "sicurezza computazionale" è diverso da "sicurezza perfetta", dato che quest'ultima assicura sicurezza qualsiasi sia la potenza computazionale dell'avversario.
 La sicurezza computazione è sicura dato che il miglior algoritmo conosciuto, richiederebbe un ammontare di risorse che vanno oltre le possibilità dell'avversario.
 Non esiste nessun algoritmo efficiente per distinguere un output di un PRNG da uno TRG.
@@ -177,8 +223,8 @@ La predicibilità è importante, perché se il generatore è predicibile, l'avve
 Un esempio può venire da OTP: supponendo di ottenere la chiave dei primi n bit, se il generatore è predicibile, allora possiamo calcolare,
 con una certa probabilità, la parte di key stream precedente e successiva e ottenere, poi, il plaintext.
 
-\subsection{Pseudo-random number generator}
-\subsubsection{Linear Congruential Generator (LCG)}
+\subsubsection{Pseudo-random number generator}
+\paragraph{Linear Congruential Generator (LCG)}
 È un generatore molto semplice, implementato similmente nella libreria \textit{glibc} per la funzione \textit{random()}.
 \begin{align}
 & R_0 = seed \notag \\
@@ -187,11 +233,11 @@ con una certa probabilità, la parte di key stream precedente e successiva e ott
 Produce streams con buone statistiche, ma è predicibile dato che è presente una relazione lineare tra i campioni. \\
 La chiave potrebbe essere la coppia $(A,B)$, che potrebbe essere scoperta se un avversario conoscesse i primi bytes del plaintext e del ciphertext.
 
-\subsubsection{Linear Feedback Shift Register (LFSR)}
+\paragraph{Linear Feedback Shift Register (LFSR)}
 È realizzato con dei registri, delle operazioni di shift e lo XOR. Questo algoritmo non è predicibile quanto LCG, tuttavia è periodico: una volta individuato il periodo, è possibile ricavare tutti gli altri.
 Non è quindi adatto per applicazioni sulla security.
 
-\subsubsection{Content Scrambling System (CSS)}
+\paragraph{Content Scrambling System (CSS)}
 È costruito a partire da LFSR:
 \begin{figure}[H]
   \centering
