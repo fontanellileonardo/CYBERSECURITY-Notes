@@ -271,7 +271,7 @@ Questo comportamento deve essere evitato in crittografia.
 	\item utilizzo di "related keys" $k||iv, iv = 0, 1, 2, ..., 2^{24}-1$. RC4 è buono a meno che non vengano utilizzate chiavi "related".
 \end{enumerate}
 
-\section{Block ciphers}
+\subsection{Block ciphers}
 Non lavoriamo più bit a bit, ma su blocchi di bit. Si può, in tal modo, implementare un cipher mantenendo la perfect secrecy?
 La funzione E ora diventa una funzione che ha lo stesso dominio di \textit{p} ed è invertibile (mappa, quindi, ogni blocco unicamente ad un altro blocco).
 Tutti i possibili blocchi di \textit{n} bit sono $2^{n}$. Per avere un cipher perfetto dobbiamo implementare tutte le permutazioni dei blocchi, da cui il numero di chiavi è uguale a $2^{n}!$.
@@ -301,8 +301,8 @@ In pratica, la funzione di criptaggio che corrisponde a una chiave scelta random
 \end{figure}
 La grandezza del blocco dovrebbe essere grande abbastanza da rendere un attacco dizionario infattibile in termini di complessità di storage, quindi se $n = 64$, un avversario dovrebbe salvare $2^{64} \times (8 \times 2)$ bytes (8 bytes per il plaintext e ciphertext).
 
-\subsection{DES improvements}
-DES è deprecato per via della chiave che è troppo corta (56 bits). Potremmo pensare di cifrare più volte usando E con chiavi diverse: esiste uno standard che sfrutta questo metodo ed è chiamato 3DES.\\
+\subsubsection{DES}
+DES è deprecato e considerato non più sicuro, per via della chiave che è troppo corta (56 bits). Potremmo pensare di cifrare più volte usando E con chiavi diverse: esiste uno standard che sfrutta questo metodo ed è chiamato 3DES.\\
 L'operazione di cifratura è fatta in questo modo:
 $$3E(e_1, e_2, e_3), p) = E (e_1, D(e_2, E(e_3, p)))$$
 Nel ricevitore basta effettuare l'operazione inversa. Perché si cifra, poi si decifra e poi nuovamente si decifra? 
@@ -322,30 +322,27 @@ Perché questo metodo è più efficiente di quello precedente? Perché la prima 
 e la seconda richiede di effettuare al più $2^{56}$ operazioni di decriptazione; le due complessità, in questo caso, si sommano e non si moltiplicano. Per questo la complessità resta $O(2^{56})$,
 rendendo l'algoritmo non più sicuro di DES. Nel caso di 3DES, questo attacco non è un problema, perché la complessità sarebbe pari a $2^{112}$ e la complessità dello spazio pari a $2^{56}$.
 
-\subsubsection{2DES}
+\paragraph{2DES}
+$$k = k_1 + k_2$$
+Anche se la nuova chiave è su 112 bits, questa non va a migliorare la sicurezza perché l'attacco \textit{Meet-in-the-middle} (Know-Plain text) ha una complessità $O(2^{56})$ per trovare $k_1$ e $O(2^{56})$ per trovare $k_2$, comparando il testo criptato $X_L$ e quello decriptato $Y_L$. Questo porta a una complessità totale di $O(2^{56})$. In più, dimezza le performance.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/2des}
 \end{figure}
 
-$$k = k_1 + k_2$$
-Anche se la nuova chiave è su 112 bits, questa non va a migliorare la sicurezza perché l'attacco \textit{Meet-in-the-middle} (Know-Plain text) ha una complessità $O(2^{56})$ per trovare $k_1$ e $O(2^{56})$ per trovare $k_2$, comparando il testo criptato $X_L$ e quello decriptato $Y_L$. Questo porta a una complessità totale di $O(2^{56})$. In più, dimezza le performance.
-
-\subsubsection{3DES}
+\paragraph{3DES}
+$$k = k_1 + k_2 + k_3$$
+La nuova chiave è su 168 bits e l'attacco \textit{Meet-in-the-middle} ha una complessità di $O(2^{56\times2}) = O(2^{112})$.
+Nella versione $EDE$ $k_1 = k_2 = k_3$.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/3des}
 \end{figure}
 
-$$k = k_1 + k_2 + k_3$$
-La nuova chiave è su 168 bits e l'attacco \textit{Meet-in-the-middle} ha una complessità di $O(2^{56\times2}) = O(2^{112})$.
-Nella versione $EDE$ $k_1 = k_2 = k_3$.
-
-\subsubsection{Key whitening}
-È utilizzato in nei cifrari detti "scatole nere" (senza vulnerabilità interne), che utilizzano chiavi piccole.
-
+\paragraph{Key whitening}
+È utilizzato in nei cifrari detti "scatole nere" (senza vulnerabilità interne), che utilizzano chiavi piccole. \\
 Prevede solo il processo di criptazione più pre-xor e post-xor:
 $$ c = k_2 \oplus E(k, (m \oplus k1)) $$
 
@@ -356,18 +353,18 @@ $$ c = k_2 \oplus E(k, (m \oplus k1)) $$
 	\item attacco più efficiente: l'avversario conosce $2^m$ (PT-CT)-coppie (complessità dei dati) $\Rightarrow$ $O(2^{k+n-m})$
 \end{itemize}
 
-\section{Computational security vs Attack complexity}
-\subsection{Computational security}
+\subsubsection{Computational security vs Attack complexity}
+\paragraph{Computational security}
 Un cifrario è computazionalmente (praticamente) sicuro quando, il livello percepito di computazione richiesto per romperlo, utilizzando il miglior attacco conosciuto, eccede, di un margine "di sicurezza", le risorse computazionali dell'avversario ipotizzato.
 Si assume, quindi, che l'avversario abbia una potenza computazionale limitata.
-\subsection{Attack complexity}
+\paragraph{Attack complexity}
 La complessità di un attacco dipende da:
 \begin{itemize}
 	\item \textbf{Data Complexity:} il numero previsto di unità di dati di input richiesti
 	\item \textbf{Storage Complexity:} il numero previsto di unità di storage richieste.
 	\item \textbf{Processing Complexity:} il numero previsto di operazioni richieste per processare i dati di input e/o riempire lo spazio di storage con i dati.
 \end{itemize}
-\subsection{Computational security vs Attack complexity}
+\paragraph{Computational security vs Attack complexity}
 Un block cipher è computazionalmente sicuro se:
 \begin{itemize}
 	\item La grandezza dei blocchi \textit{n} è sufficientemente grande da precludere una data analysis esaustiva 
@@ -375,7 +372,7 @@ Un block cipher è computazionalmente sicuro se:
 	\item Nessun attacco conosciuto ha complessità di dati e di processing minore, rispettivamente, di $2^n$ e $2^k$.
 \end{itemize}
 
-\section{Exhaustive key search}
+\subsubsection{Exhaustive key search}
 Con $k > n$ è possibile trovare chiavi false positive. Data una coppia $x_1$ e $y_1$, la probabilità che quella chiave $k$ sia in grado di mappare $x_1$ in $y_1$ è:
 $$ P = \frac{1}{2^n} $$
 questo perché l'algoritmo può essere considerato sicuro e l'output può essere visto come una variabile random uniforme.
@@ -385,7 +382,7 @@ Se si vuole ridurre il set di chiavi candidate, si deve collezionare altre coppi
 $$ E(\#keys) = 2^{k-tn} $$
 Un criptaggio multiplo con r-stage di criptaggi ha $2^{rk-tn}$ chiavi candidate.
 
-\section{Confusion and diffusion}
+\subsubsection{Confusion and diffusion}
 In accordo a Shannon, ci sono due operazioni primitive con cui possono essere costruiti algoritmi di criptaggio forti:
 \begin{itemize}							
 	\item \textbf{Confusion}: operazione di criptaggio dove la relazione tra chiave e ciphertext è oscurata.
@@ -394,14 +391,13 @@ In accordo a Shannon, ci sono due operazioni primitive con cui possono essere co
 I block cipher buoni dovrebbero avere \textit{confusion} e \textit{diffusion}. Se ce n'è soltanto uno dei due, il block cipher sarà rotto.
 Quindi, queste due funzioni devono essere usate in combinazione, concatenate.
 
-\section{Data Encryption Standard (DES)}
+\subsubsection{Data Encryption Standard (DES)}
 \begin{itemize}
 	\item $n = 64$
 	\item $k = 56$
 \end{itemize}
 DES è un algoritmo iterativo. Per ogni blocco del plaintext, il criptaggio è gestito in 16 rounds che eseguono tutte operazioni identiche. 
 In ogni round è utilizzata una differente sotto-chiave e tutte le sotto-chiavi $k_i$ sono derivate dalla chiave principale $k$ dal \textit{key schedule}.
-
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/key-schedule}
@@ -422,16 +418,15 @@ Un vantaggio del Feistel netwowk è che il criptaggio e il de-criptaggio sono pr
 \end{align}
 La struttura Feistel cripta (decripta) solo la metà dei bit di input per ogni round.
 
-\subsection{Round function \textit{f}}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.5\textwidth]{img/round-func}
-\end{figure}
+\paragraph{Round function \textit{f}}
 La funzione $f$ è un preudo-random generator con due parametri di input $R_{i-1}$ e $k_i$. Dovrebbe essere non predicibile. Utilizza blocchi predefiniti non lineari e mappa 32 bits di input a 32 bits di output utilizzando una chiave "round" da 48 bit $k_i$, con $1 \leq i \leq 16$.
 La \textit{Diffusion} è fatta da una \textit{permutazione IP iniziale} utilizzando una permutazione e duplicazione bit-a-bit, \textit{confusion} è fatta da S-boxes.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/round-func}
+  \end{figure}
 
-\subsection{DES properties}
+\paragraph{DES properties}
 DES è un buon cifrario e soddisfa le seguenti proprietà:
 \begin{itemize}
 	\item ogni bit del ciphertext dipende completamente dai bit della chiave e del plaintext
@@ -439,15 +434,25 @@ DES è un buon cifrario e soddisfa le seguenti proprietà:
 	\item il cambiamento di un bit nel plaintext (ciphertext) causa il cambiamento di ogni bit nel ciphertext (plaintext) con probabilità 0,5 (RV uniforme).
 \end{itemize} 
 
-\section{Note sulla Criptoanalisi}
+\subsubsection{Note sulla Criptoanalisi}
 Un buon cipher deve essere in grado di mascherare le proprietà statistiche del plaintext: se queste si ripercuotono sul ciphertext, l'avversario può ottenere informazioni sul plaintext e, in alcuni casi, quindi, anche sulla chiave.
 Un esempio storico è quello del \textit{cifrario monoalfabetico}: la chiave consiste in una tabella di lettere e la funzione di criptazione opera sostituendo le lettere del plaintext con quelle nella chiave (permutazione delle lettere). 
 L'avversario può adoperare tecniche di criptoanalisi, ad esempio, partendo dalla lingua nella quale è scritto il messaggio. 
 Questo perché, ogni lingua è caratterizzata dall'utilizzo più o meno frequente di certi caratteri, quindi l'avversario può associarli con i caratteri del plaintext più frequenti, ottenendo il plaintext e in questo caso anche parte della chiave.
 Uno spazio delle chiavi molto grande non è sufficiente (è solo condizione necessaria) a mascherare le proprietà statistiche del plaintext, quindi la funzione di criptazione deve far in modo che il ciphertext appaia come una serie di caratteri il più possibile aleatoria.
 
-\section{Encryption Modes}
-\subsection{Electronic Codebook (ECB)}
+\subsection{Encryption Modes}
+Per quanto abbiamo visto dal punto di vista matematico, la funzione di encrypting $E$ prende in ingresso un plaintext di dimensione $n$, una chiave di dimensione $k$ e restituisce il ciphertext di dimensione $n$. \\
+Si vede adesso, come cifrare quando il plaintext ha dimensione maggiore o minore rispetto alla dimensione fissa $n$ di un blocco. \\
+Plaintext $<$ dimensione blocco($n$):
+\begin{itemize}
+	\item Padding
+\end{itemize}
+Plaintext $>$ dimensione blocco($n$):
+\begin{itemize}
+	\item Encryption Modes: ECB, CBC ...
+\end{itemize}
+\subsubsection{Electronic Codebook (ECB)}
 Dividiamo il plaintext in più parti di uguale lunghezza e cifriamo ogni singola parte, indipendentemente.
 \begin{figure}[H]
   \centering
@@ -467,7 +472,7 @@ Dividiamo il plaintext in più parti di uguale lunghezza e cifriamo ogni singola
 Gli svantaggi ci indicano che questo sistema è malleabile: un avversario può registrare un blocco e rimpiazzarlo in un ciphertext successivo, così da alterare, efficientemente, il plaintext associato.
 Una soluzione può essere quella di associare un timestamp al messaggio, in modo da evitare attacchi di replay: il problema persiste perché l'avversario può ancora intercettare il messaggio, modificare i blocchi che contengono le informazioni rilevanti e poi trasmettere il messaggio alterato. Una encryption mode che risolve questi problemi è CBC.
 
-\subsection{Cipherblock Chaining (CBC)}
+\subsubsection{Cipherblock Chaining (CBC)}
 Prima che il blocco di plaintext corrente venga cifrato, viene fatta un'operazione di XOR con il ciphertext ottenuto dal blocco precedente.
 Per il primo blocco si usa un \textit{Initialization Vector}, il quale serve per randomizzare il ciphertext finale: CBC è, in tal senso, deterministico, ciò vuol dire che plaintext identici possono produrre ciphertext differenti a parità di chiave.
 IV è una sorta di nonce. Non sussiste più neanche il problema del riordinamento dei blocchi, in quanto questo porterebbe ad alterare l'intero ciphertext. L'IV va rigenerato ad ogni ritrasmissione (come un nonce) e può essere mandato in chiaro, anche se bisogna assicurarsi che resti integro.
@@ -481,38 +486,38 @@ Non è necessario un RNG, può bastare anche un contatore. Tuttavia, diversament
   \includegraphics[width=0.5\textwidth]{img/cbc}
 \end{figure}
 
-\subsection{Cipher Feedback (CFB)}
+\subsubsection{Cipher Feedback (CFB)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/cfb}
 \end{figure}
 CFB è uno stream cipher blocco a blocco asincrono, perché dipende dal ciphertext precedente.
 
-\subsection{Output Feedback (OFB)}
+\subsubsection{Output Feedback (OFB)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/ofb}
 \end{figure}
 OFB è uno stream cipher blocco a blocco sincrono e consente la pre-computazione, questo perché il blocco successivo non dipende ne da $PT$ o $CT$.
 
-\subsection{Counter Mode (CTR)}
+\subsubsection{Counter Mode (CTR)}
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/ctr}
 \end{figure}
 Da' un limite superiore all'ammontare di dati che possono essere criptati.
 
-\section{Padding (PKCS \#7)}
-Il padding viene utilizzato per rendere la lunghezza del plaintext multipla della grandezza $n$ del blocco. In tutti i casi la lunghezza del ciphertext è sempre più grande del plaintext. Questo fenomeno è chiamato \textit{ciphertext expansion}.
-
-\subsection{Ciphertext Stealing Mode (CTS)}
+\subsubsection{Ciphertext Stealing Mode (CTS)}
 Cripta utilizzando EBC senza la ciphertext expansion.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{img/cts}
 \end{figure}
 
-\section{Advanced Encryption Standard (AES)}
+\subsubsection{Padding (PKCS \#7)}
+Il padding viene utilizzato per rendere la lunghezza del plaintext multipla della grandezza $n$ del blocco. In tutti i casi la lunghezza del ciphertext è sempre più grande del plaintext. Questo fenomeno è chiamato \textit{ciphertext expansion}.
+
+\subsection{Advanced Encryption Standard (AES)}
 Similmente a DES, anche in questo caso si usa uno schema di funzioni a round.
 Tuttavia le reti di Feistel sono sostituite con delle reti di \textit{Subs-Perms}: queste effettuano, per ogni round e in ordine, delle operazioni di byte substitution, row shift e column mix, restando comunque ancora delle funzioni invertibili. 
 Si usa ancora la \textit{key expansion}.
