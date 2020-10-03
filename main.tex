@@ -14,7 +14,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
-
+\usepackage{amsmath}
 \usepackage{enumitem}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
@@ -285,7 +285,6 @@ Il plaintext è diviso in blocchi di lunghezza fissata $n$:
   \centering
   \includegraphics[width=0.5\textwidth]{img/block-cipher}
 \end{figure}
-
 \begin{itemize}
 	\item $E : \{0,1\}^n \rightarrow \{0,1\}^n$
 	\item $D : \{0,1\}^n \rightarrow \{0,1\}^n$
@@ -301,7 +300,45 @@ In pratica, la funzione di criptaggio che corrisponde a una chiave scelta random
 \end{figure}
 La grandezza del blocco dovrebbe essere grande abbastanza da rendere un attacco dizionario infattibile in termini di complessità di storage, quindi se $n = 64$, un avversario dovrebbe salvare $2^{64} \times (8 \times 2)$ bytes (8 bytes per il plaintext e ciphertext).
 
-\subsubsection{DES}
+\subsubsection{Computational security vs Attack complexity}
+\paragraph{Computational security}
+Un cifrario è computazionalmente (praticamente) sicuro quando, il livello percepito di computazione richiesto per romperlo, utilizzando il miglior attacco conosciuto, eccede, di un margine "di sicurezza", le risorse computazionali dell'avversario ipotizzato.
+Si assume, quindi, che l'avversario abbia una potenza computazionale limitata.
+\paragraph{Attack complexity}
+La complessità di un attacco dipende da:
+\begin{itemize}
+	\item \textbf{Data Complexity:} il numero previsto di unità di dati di input richiesti
+	\item \textbf{Storage Complexity:} il numero previsto di unità di storage richieste.
+	\item \textbf{Processing Complexity:} il numero previsto di operazioni richieste per processare i dati di input e/o riempire lo spazio di storage con i dati.
+\end{itemize}
+\paragraph{Computational security vs Attack complexity}
+Un block cipher è computazionalmente sicuro se:
+\begin{itemize}
+	\item La grandezza dei blocchi \textit{n} è sufficientemente grande da precludere una data analysis esaustiva 
+	\item La grandezza della chiave \textit{k} è sufficientemente grande da precludere una ricerca della chiave esaustiva
+	\item Nessun attacco conosciuto ha complessità di dati e di processing minore, rispettivamente, di $2^n$ e $2^k$.
+\end{itemize}
+
+\subsubsection{Exhaustive key search}
+Con $k > n$ è possibile trovare chiavi false positive. Data una coppia $x_1$ e $y_1$, la probabilità che quella chiave $k$ sia in grado di mappare $x_1$ in $y_1$ è:
+$$ P = \frac{1}{2^n} $$
+questo perché l'algoritmo può essere considerato sicuro e l'output può essere visto come una variabile random uniforme.
+Dato che il numero di chiavi sono $2^k$, il numero di chiavi candidate atteso è: 
+$$ E(\#keys) = 2^k \times \frac{1}{2^n} = 2^{k-n}$$
+Se si vuole ridurre il set di chiavi candidate, si deve collezionare altre coppie (relativamente al concetto di \textit{unicity distance}). Se si hanno $t$ coppie plaintext-ciphertext, il numero di chiavi candidate atteso sarà:
+$$ E(\#keys) = 2^{k-tn} $$
+Un criptaggio multiplo con r-stage di criptaggi ha $2^{rk-tn}$ chiavi candidate.
+
+\subsubsection{Confusion and diffusion}
+In accordo a Shannon, ci sono due operazioni primitive con cui possono essere costruiti algoritmi di criptaggio forti:
+\begin{itemize}							
+	\item \textbf{Confusion}: operazione di criptaggio dove la relazione tra chiave e ciphertext è oscurata.
+	\item \textbf{Diffusion}: l'influenza di un simbolo del plaintext è diffusa su molti simboli del ciphertext con l'obiettivo di nascondere le proprietà statistiche del plaintext, utilizzando le permutazioni.
+\end{itemize}
+I block cipher buoni dovrebbero avere \textit{confusion} e \textit{diffusion}. Se ce n'è soltanto uno dei due, il block cipher sarà rotto.
+Quindi, queste due funzioni devono essere usate in combinazione, concatenate.
+
+\subsubsection{Data Encryption Standard (DES)}
 DES è deprecato e considerato non più sicuro, per via della chiave che è troppo corta (56 bits). Potremmo pensare di cifrare più volte usando E con chiavi diverse: esiste uno standard che sfrutta questo metodo ed è chiamato 3DES.\\
 L'operazione di cifratura è fatta in questo modo:
 $$3E(e_1, e_2, e_3), p) = E (e_1, D(e_2, E(e_3, p)))$$
@@ -352,46 +389,6 @@ $$ c = k_2 \oplus E(k, (m \oplus k1)) $$
 	\item attacco \textit{meet-in-the-middle}: $O(2^{k+n})$ computational + storage
 	\item attacco più efficiente: l'avversario conosce $2^m$ (PT-CT)-coppie (complessità dei dati) $\Rightarrow$ $O(2^{k+n-m})$
 \end{itemize}
-
-\subsubsection{Computational security vs Attack complexity}
-\paragraph{Computational security}
-Un cifrario è computazionalmente (praticamente) sicuro quando, il livello percepito di computazione richiesto per romperlo, utilizzando il miglior attacco conosciuto, eccede, di un margine "di sicurezza", le risorse computazionali dell'avversario ipotizzato.
-Si assume, quindi, che l'avversario abbia una potenza computazionale limitata.
-\paragraph{Attack complexity}
-La complessità di un attacco dipende da:
-\begin{itemize}
-	\item \textbf{Data Complexity:} il numero previsto di unità di dati di input richiesti
-	\item \textbf{Storage Complexity:} il numero previsto di unità di storage richieste.
-	\item \textbf{Processing Complexity:} il numero previsto di operazioni richieste per processare i dati di input e/o riempire lo spazio di storage con i dati.
-\end{itemize}
-\paragraph{Computational security vs Attack complexity}
-Un block cipher è computazionalmente sicuro se:
-\begin{itemize}
-	\item La grandezza dei blocchi \textit{n} è sufficientemente grande da precludere una data analysis esaustiva 
-	\item La grandezza della chiave \textit{k} è sufficientemente grande da precludere una ricerca della chiave esaustiva
-	\item Nessun attacco conosciuto ha complessità di dati e di processing minore, rispettivamente, di $2^n$ e $2^k$.
-\end{itemize}
-
-\subsubsection{Exhaustive key search}
-Con $k > n$ è possibile trovare chiavi false positive. Data una coppia $x_1$ e $y_1$, la probabilità che quella chiave $k$ sia in grado di mappare $x_1$ in $y_1$ è:
-$$ P = \frac{1}{2^n} $$
-questo perché l'algoritmo può essere considerato sicuro e l'output può essere visto come una variabile random uniforme.
-Dato che il numero di chiavi sono $2^k$, il numero di chiavi candidate atteso è: 
-$$ E(\#keys) = 2^k \times \frac{1}{2^n} = 2^{k-n}$$
-Se si vuole ridurre il set di chiavi candidate, si deve collezionare altre coppie (relativamente al concetto di \textit{unicity distance}). Se si hanno $t$ coppie plaintext-ciphertext, il numero di chiavi candidate atteso sarà:
-$$ E(\#keys) = 2^{k-tn} $$
-Un criptaggio multiplo con r-stage di criptaggi ha $2^{rk-tn}$ chiavi candidate.
-
-\subsubsection{Confusion and diffusion}
-In accordo a Shannon, ci sono due operazioni primitive con cui possono essere costruiti algoritmi di criptaggio forti:
-\begin{itemize}							
-	\item \textbf{Confusion}: operazione di criptaggio dove la relazione tra chiave e ciphertext è oscurata.
-	\item \textbf{Diffusion}: l'influenza di un simbolo del plaintext è diffusa su molti simboli del ciphertext con l'obiettivo di nascondere le proprietà statistiche del plaintext, utilizzando le permutazioni.
-\end{itemize}
-I block cipher buoni dovrebbero avere \textit{confusion} e \textit{diffusion}. Se ce n'è soltanto uno dei due, il block cipher sarà rotto.
-Quindi, queste due funzioni devono essere usate in combinazione, concatenate.
-
-\subsubsection{Data Encryption Standard (DES)}
 \begin{itemize}
 	\item $n = 64$
 	\item $k = 56$
@@ -424,7 +421,7 @@ La \textit{Diffusion} è fatta da una \textit{permutazione IP iniziale} utilizza
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.5\textwidth]{img/round-func}
-  \end{figure}
+\end{figure}
 
 \paragraph{DES properties}
 DES è un buon cifrario e soddisfa le seguenti proprietà:
@@ -432,9 +429,46 @@ DES è un buon cifrario e soddisfa le seguenti proprietà:
 	\item ogni bit del ciphertext dipende completamente dai bit della chiave e del plaintext
 	\item non ci sono evidenti relazioni statistiche tra il plaintext e il ciphertext
 	\item il cambiamento di un bit nel plaintext (ciphertext) causa il cambiamento di ogni bit nel ciphertext (plaintext) con probabilità 0,5 (RV uniforme).
-\end{itemize} 
+\end{itemize}
 
-\subsubsection{Note sulla Criptoanalisi}
+\paragraph{Visione delle componenti di DES}
+\subparagraph{1 - Visione esterna}
+La visione esterna di DES è la seguente:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/visione-esterna-des.png}
+\end{figure}
+Affinché un cifrario a blocchi sia ideale (perfettamente random), devono essere possibili un numero di permutazioni pari a $2^n!=2^64!$, ma la chiave DES è a soli 56 bit, dunque può dar luogo a sole $2^56$ permutazioni che è minore di $2^64$ richiesto. \\
+DES non è dunque un cifrario perfettamente random.
+
+\subparagraph{2 - Visione interna}
+Il cifrario DES ha la seguente struttura interna in fase di cifratura. \\
+Nella decifratura si hanno i medesimi blocchi, solo che le chiavi sono schedulate al contrario: $k_16$ in R1 e $k_15$ in R2.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.3\textwidth]{img/visione-interna-des.png}
+\end{figure}
+
+\subparagraph{3 - Visione di un round - Rete di Feistel}
+Ogni round lavora sul semicifrato del round precedente. Ogni semicifrato viene diviso in 2 parti:
+$$ \text{SEMICIFRATO}_{(i-1)} (64 bit) = L_{(i-1)} (32 bit), R_{(i-1)} (32 bit) $$
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/visione-round-des.png}
+\end{figure}
+L'invertibilità di tutte le $f_i$ garantisce anche l'invertibilità della funzione finale. La funzione $f_i$ prende in ingresso sia $R_i$ che una chiave $k_i$.
+Tutti i $k_i$ sono generati a partire da $k$ attraverso una procedura \textit{key expansion}.
+
+\subparagraph{4 - Funzione F non lineare}
+La sicurezza di DES sta tutta nelle \textbf{S-BOX}: sono delle tabelle non lineari. In base all'ingresso viene scelta la corrispondenza nella tabella. \\
+Una di esse fu modificata dal NSA americano quando scrutinò DES. \\
+Con le S-BOX si maschera il legame tra testo cifrato e chiave e inoltre si aggiunge non linearità. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.2\textwidth]{img/funzione-f-des.png}
+\end{figure}
+
+\subsection{Note sulla Criptoanalisi}
 Un buon cipher deve essere in grado di mascherare le proprietà statistiche del plaintext: se queste si ripercuotono sul ciphertext, l'avversario può ottenere informazioni sul plaintext e, in alcuni casi, quindi, anche sulla chiave.
 Un esempio storico è quello del \textit{cifrario monoalfabetico}: la chiave consiste in una tabella di lettere e la funzione di criptazione opera sostituendo le lettere del plaintext con quelle nella chiave (permutazione delle lettere). 
 L'avversario può adoperare tecniche di criptoanalisi, ad esempio, partendo dalla lingua nella quale è scritto il messaggio. 
@@ -476,7 +510,13 @@ Una soluzione può essere quella di associare un timestamp al messaggio, in modo
 Prima che il blocco di plaintext corrente venga cifrato, viene fatta un'operazione di XOR con il ciphertext ottenuto dal blocco precedente.
 Per il primo blocco si usa un \textit{Initialization Vector}, il quale serve per randomizzare il ciphertext finale: CBC è, in tal senso, deterministico, ciò vuol dire che plaintext identici possono produrre ciphertext differenti a parità di chiave.
 IV è una sorta di nonce. Non sussiste più neanche il problema del riordinamento dei blocchi, in quanto questo porterebbe ad alterare l'intero ciphertext. L'IV va rigenerato ad ogni ritrasmissione (come un nonce) e può essere mandato in chiaro, anche se bisogna assicurarsi che resti integro.
-Non è necessario un RNG, può bastare anche un contatore. Tuttavia, diversamente da ECB:
+Non è necessario un RNG, può bastare anche un contatore. \\
+Con CBC si vanno ad eliminare 2 problemi visti in ECB:
+\begin{enumerate}
+	\item IV e lo XOR introducono una randomizzazione: 2 plaintext diversi producono ciphertext diversi.
+	\item Si rilevano immediatamente riordini o sostituzioni, ma ciò inficia l'operazione di decifratura. Una sostituzione cambia la comprensione dell'intero plaintext ricevuto.
+\end{enumerate}
+Tuttavia, CBC intoduce alcuni problemi:
 \begin{itemize}
 	\item L'algoritmo non può essere parallelizzato perché ogni operazione richiede il risultato di quella precedente.
 	\item Un errore nel blocco i-esimo si propaga in tutti i blocchi successivi.
@@ -515,7 +555,10 @@ Cripta utilizzando EBC senza la ciphertext expansion.
 \end{figure}
 
 \subsubsection{Padding (PKCS \#7)}
-Il padding viene utilizzato per rendere la lunghezza del plaintext multipla della grandezza $n$ del blocco. In tutti i casi la lunghezza del ciphertext è sempre più grande del plaintext. Questo fenomeno è chiamato \textit{ciphertext expansion}.
+Il padding viene utilizzato per rendere la lunghezza del plaintext multipla della grandezza $n$ del blocco. 
+In tutti i casi la lunghezza del ciphertext è sempre più grande del plaintext. Questo fenomeno è chiamato \textit{ciphertext expansion}. \\
+Il meccanismo del padding è molto semplice: se il plaintext non è un multiplo della dimensione di un blocco, vengono aggiunti una serie di $3$ per completarlo. \\
+L'utilizzo di questa tecnica introduce un problema: se avessi voluto inviare un plaintext con dei $3$ in coda? Per risolvere questo problema e se il plaintext è un multiplo della dimensione del blocco, si aggiunge un padding block, composto da soli 8, subito dopo.
 
 \subsection{Advanced Encryption Standard (AES)}
 Similmente a DES, anche in questo caso si usa uno schema di funzioni a round.
@@ -557,7 +600,8 @@ Le funzioni hash, invece, possono essere utilizzate per \textit{l'integrità} e 
 L'autenticazione dell'origine dei dati richiede il controllo di integrità, e viceversa.
 $$ H : \{0,1\}^* \rightarrow \{0,1\}^n $$
 Le collisioni avvengono quando almeno 2 input hanno lo stesso \textit{digest}.
-Una funzione hash sicura è quando le collisioni esistono ma sono "difficili" da trovare.
+Una funzione hash sicura è quando le collisioni esistono ma sono "difficili" da trovare. \\
+L'integrità del messaggio è la proprietà con cui i dati non sono stati alterati in modo non autorizzato dal momento in cui è stato creato, trasmesso o memorizzato da una fonte autorizzata. \\
 
 \subsection{Proprietà informali}
 Una funzione hash deve rispettare, in pratica, queste proprietà:
@@ -590,17 +634,17 @@ Tuttavia, non è vero che avere la collision resistance implichi avere anche anc
 \subsection{Attacchi alle Funzioni Hash}
 L'obiettivo dell'attacco è produrre una collisione. Ci si può trovare in due situazioni:
 \begin{itemize}
-	\item \textbf{Selective Forgery}: l'avversario ha il controllo completo o parziale su $x$.
+	\item \textbf{Selective Forgery}: l'avversario ha il controllo completo o parziale su $x$. (Per esempio, sapendo che $x$ è un pdf, $x'$ viene generato considerando il fatto che deve collidere con un file pdf.)
 	\item \textbf{Existential Forgery}: l'avversario non ha il controllo su $x$.
 \end{itemize}
 L'avversario non ha controllo su $x$, se l'informazione che rappresenta non è consistente o non persegue lo scopo dell'avversario. \\
+\subsubsection{Black box attacks}
 Una categoria di attacchi alle funzioni hash è quella del tipo \textbf{Black Box}, nella quale:
 \begin{itemize}
 	\item H è considerata come una scatola nera.
 	\item teniamo in considerazione solo la dimensione dell'output
 	\item H è considerata approssimatamente una variabile casuale.
 \end{itemize}
-\subsubsection{Black box attacks}
 Questi attacchi, quindi, non sfruttano le caratteristiche interne delle funzioni hash:
 \begin{itemize}
 	\item Guessing attack contro $2^{nd}$ preimage: $O(2^n)$
@@ -618,9 +662,9 @@ L'algoritmo è il seguente:
 	return x;
 \end{lstlisting}
 \end{center}
-Ogni step richiede di generare un numero random e di trovare l'hash.
-Ogni hash calcolato ha una probabilità di $1/2^n$ di essere il risultato da trovare. 
-L'algoritmo ha, quindi, una complessità di $O(2^n)$, principalmente dovuto alle iterazioni
+Ogni step richiede di generare un numero random e di trovare l'hash. \\
+Ogni hash calcolato ha una probabilità di $\frac{1}{2^n}$ di essere il risultato da trovare. 
+L'algoritmo ha, quindi, una complessità di $O(2^n)$, principalmente dovuto alle iterazioni. È sostanzialmente un attacco brute force.
 
 \paragraph{Birthday Attack $O\left(2^{\frac{n}{2}}\right)$}
 \begin{enumerate}
