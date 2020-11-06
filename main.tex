@@ -311,8 +311,7 @@ La complessità di un attacco dipende da:
 	\item \textbf{Storage Complexity:} il numero previsto di unità di storage richieste.
 	\item \textbf{Processing Complexity:} il numero previsto di operazioni richieste per processare i dati di input e/o riempire lo spazio di storage con i dati.
 \end{itemize}
-\paragraph{Computational security vs Attack complexity}
-Un block cipher è computazionalmente sicuro se:
+\paragraph{Computational security vs Attack complexity} Un block cipher è computazionalmente sicuro se:
 \begin{itemize}
 	\item La grandezza dei blocchi \textit{n} è sufficientemente grande da precludere una data analysis esaustiva 
 	\item La grandezza della chiave \textit{k} è sufficientemente grande da precludere una ricerca della chiave esaustiva
@@ -673,25 +672,55 @@ L'algoritmo ha, quindi, una complessità di $O(2^n)$, principalmente dovuto alle
 	\item scorriamo gli hash prodotti per individuare due hash uguali, quindi $t_i == t_j, i \neq j$.
 	\item se non troviamo nessun hash uguale, ripartiamo dal primo punto.
 \end{enumerate}
-Dal punto di vista della complessità, ogni singola iterazione è complessa $2^{\frac{n}{2}}$, tuttavia non conosciamo qual è il numero medio di iterazioni da fare prima di trovare una collisione.
+Dal punto di vista della complessità, ogni singola iterazione è complessa $2^{\frac{n}{2}}$, tuttavia non conosciamo qual è il numero medio di iterazioni da fare prima di trovare una collisione. \\
+Per il momento, si può dire che, osservando le complessità dei due attacchi, si nota che violare la seconda proprietà (trovare un $x'$ con valore di output uguale all'output di un $x$ noto), è più difficile violare la terza proprietà (trovare due valori, $x$ e $x'$ i cui output sono uguali). È un problema di probabilità. 
 A questo punto ci viene in aiuto il:
 
 \subparagraph{Birthday Paradox}
 \begin{itemize}
 	\item \textbf{Problema 1}: Qual è la probabilità che, in una stanza dove ci sono 23 persone, almeno una sia nata il 25 Dicembre? \\
-	$\underbrace{\frac{1}{365}+\frac{1}{365}+\ldots+\frac{1}{365}}_{23 \text { volte }}=0,063$
+	$\underbrace{\frac{1}{365}+\frac{1}{365}+\ldots+\frac{1}{365}}_{23 \text { volte }}=0,063$ \\
+	Questo problema è riconducibile a infrangere la seconda proprietà (Guessing attack).
 	\item \textbf{Problema 2}: In una stanza in cui ci sono 23 persone, qual è la probabilità che almeno 2 persone siano nate lo stesso giorno? \\
 	Per semplicità, si può risolvere il problema inverso Q (la probabilità che 2 persone non siano nate lo stesso giorno) e calcolare P come:
 	$$ Q = 1 - P $$ 
 	$$\frac{364}{365} \cdot \frac{363}{365} \cdot \ldots \cdot \frac{(364-23+1)}{365}=0,493$$
 	$$ P = 1 - Q = 0,507 $$
-	La probabilità, quindi, è nettamente superiore a quella del problema precedente.
+	La probabilità, quindi, è nettamente superiore a quella del problema precedente. \\
+	Questo problema è riconducibile al Birthday attack.
 \end{itemize}
+
+\subparagraph{Teorema formalizzato} Prendiamo $n$ interi $r_1, r_2, r_3, \ldots, r_n \in \{\exists i \neq j : r_i = r_j\} \geq \frac{1}{2}$ 
+questo teorema ci dice che se abbiamo un intervallo di valori (da i a B) e scegliamo casualmente $n$ valori, se $n = 1.2 * B^{\frac{1}{2}}$, allora si avranno il $50\%$ di possibilità, pescando 2 valori, che siano uguali. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{img/collision-probability.png}
+\end{figure}
+Dal grafico si può notare che per un valore di $B = 10^6$, prendendo 1200 valori, 
+si ha la probabilità del $50\%$ di avere 2 valori uguali. 
+Questa probabilità aumenta all'aumentare di $n$. \\
+Quindi, si applica questo teorema al birthday attack per determinare il numero di iterazioni si devono effettuare:\\
+$$t_i = H(x_i)$$
+$$t_i \in [0.2^n - 1]\; \text{dove n è il numero di bit in uscita (MD5 128)}$$
+$$B = 2^n\; \text{massimo valore dell'intervallo}$$
+$$N = B^{\frac{1}{2}}\; \text{si approssima il numero di valori scelti, togliendo 1.2}$$ 
+Con questo numero di valori random scelti (N), si può ottenere una collisione in una singola iterazione (complessità $2^{\frac{n}{2}}$) con una probabilità di $\frac{1}{2}$. \\
+In conclusione, con circa 2 iterazioni posso ottenere una collisione con il birthday attack. Con questo attacco, però, si ha la necessità di utilizzare più risorse in quanto si deve memorizzare tutti i valori di output per poi cercare una collisione fra questi. \textit{(large store complexity)}.
 
 \subsection{Costruzione di una Funzione Hash}
 
 \subsubsection{Schema Merkle-Damgard}
-Questo schema è utilizzato per costruire una funzione hash $H$. Se vogliamo costruire una \textbf{Collision Resistant Hash Function (CRHF)} si ha bisogno un $h$ resistente alle collisioni.
+Questo schema è utilizzato per costruire una funzione hash $H$. 
+Se vogliamo costruire una \textbf{Collision Resistant Hash Function (CRHF)} si ha bisogno un $h$ resistente alle collisioni.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{img/merkle-damgard.png}
+\end{figure}
+Dove $h$ è definita \textit{compression function} e PB è il \textit{padding block}. 
+Da questo schema deriva un teorema molto importante: \\
+\textbf{Teorema:} Se $h$ è resistente alle collisioni allora $H$ è resistente alle collisioni. \\
+\textbf{Dimostrazione:} Una collisione in $H$ equivale a una collisione in $h$. \\
+Per costruire un \textbf{CRHF} è sufficiente costruire delle compression function resistenti alle collisioni.
 
 \paragraph{Schema Davies-Meyer}
 \begin{figure}[H]
@@ -706,6 +735,8 @@ Per rendere l'attacco birthday molto meno infattibile, può essere utilizzato lo
 \newpage
 
 \section{Message Authentication Codes (MACs)}
+L'autenticazione dell'origine del messaggio è un tipo di autenticazione che serve a confermare un'entità come sorgente di un messaggio creato nel passato. \\ 
+Tale tipo di autenticazione ha come risultato intrinseco anche l'integrità del messaggio.
 MAC non viene usato per la confidenzialità, l'obiettivo è quello dell'autenticazione: come garantire che un messaggio m sia stato inviato da una certa entità? \\
 Supponiamo che Alice debba mandare a Bob un messaggio $m$: per garantire l'autenticità, Alice produce un tag $t$ e lo trasmette insieme ad $m$. 
 Per produrre $t$ usiamo una chiave precondivisa $k$ (similmente agli schemi simmetrici) come ingressi per una funzione S. Quindi:
@@ -728,6 +759,13 @@ In definitiva, MAC fornisce l'integrità del messaggio e autenticazione.
 	\item $t$: tag o digest o fingerprint
 	\item $S$: Algoritmo di generazione MAC
 	\item $V$: Algoritmo di verifica MAC
+\end{itemize}
+
+Gode delle seguenti proprietà basilari:
+\begin{itemize}
+	\item \textbf{compressione:} è una funzione che mappa su un numero finito di bytes (output) un ingresso arbitrario.
+	\item \textbf{facilità computazionale:} dato un input $x$, deve essere facile computazionalmente calcolare $h(x)$.
+	\item \textbf{resistenza computazionale:} per ogni chiave $k$, date zero o più coppie $x_i$, $h_k(x_i)$, è difficile calcolare $x$, $h_k(x)$ per qualsiasi $x \neq x_i$: ossia, se non si ha già a disposizione il MAC di un ingresso, senza una chiave non lo si trova facilmente osservando i risultati di altri input. Questa proprietà implica la \textit{key-non-recovery}, non viceversa.
 \end{itemize}
 
 \subsection{Algoritmo di generazione MAC}
