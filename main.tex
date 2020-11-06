@@ -767,6 +767,35 @@ Gode delle seguenti proprietà basilari:
 	\item \textbf{facilità computazionale:} dato un input $x$, deve essere facile computazionalmente calcolare $h(x)$.
 	\item \textbf{resistenza computazionale:} per ogni chiave $k$, date zero o più coppie $x_i$, $h_k(x_i)$, è difficile calcolare $x$, $h_k(x)$ per qualsiasi $x \neq x_i$: ossia, se non si ha già a disposizione il MAC di un ingresso, senza una chiave non lo si trova facilmente osservando i risultati di altri input. Questa proprietà implica la \textit{key-non-recovery}, non viceversa.
 \end{itemize}
+Si osservi come:
+\begin{itemize}
+	\item \textit{se si conosce k}, la definizione di secure MAC non dice niente a proposito di eventuali resistenza e preimage o 2ND preimage, in quanto se si condivide una chiave siamo in un modello \textit{"mutual trust model"}.
+	\item \textit{se non si conosce k}, la funzione $h$ è preimage, second preimage e collision resistant.
+	\begin{itemize}
+		\item per la 2ND preimage e la collision, basta osservare che l'avversario non ha semplicemente modo di calcolare il MAC essendo sprovvisto di $k$.
+		\item per la preimage si ragiona per assurdo: se si ammette il possibile recovery della preimage $x$ di un hash casuale, si viola la stessa definizione di resistenza computazionale.
+	\end{itemize}
+\end{itemize}
+L'avversario con le funzioni MAC ha come obiettivo quello di riuscire a creare delle coppie $x_j$, $h_k(x_j)$ a partire da alcune coppie note $x_i$, $h_k(x_i)$ senza conoscere k, in tal modo potrà far sì che chi riceve le coppie da lui generate, creda che siano provenienti dalle persone aventi k. \\
+Anche il tal caso, si hanno due tipo di forgeries (falsificazioni):
+\begin{itemize}
+	\item \textbf{selective forgery:} l'avversario può produrre coppie testo-MAC di sua scelta.
+	\item \textbf{existential forgery:} l'avversario può produrre coppie testo-MAC, ma senza poter decidere/conoscere il contenuto del testo.
+\end{itemize}
+Ovviamente, se l'avversario entra in possesso della chiave $k$, entrambe le falsificazioni sono possibili. È dunque bene introdurre ridondanza o strutture prefissate con del padding al fine di ridurre le possibilità di forgery dell'avversario. \\
+Obiettivo delle funzioni MAC con output a $m$ bit e chiave a $t$ bit è quindi quello di ottenere:
+\begin{itemize}
+	\item Una non possibile recovery della chiave a meno di algoritmi di complessità $2^t$: \textbf{exhaustive key search}
+	\item Una \textit{computational resistance} che dia luogo a forgery con probabilità pari alla maggiore tra $2^{-t}$ e $2^{-m}$ di un guessing attack.
+\end{itemize}
+La sicurezza dal punto di vista computazionale è raggiunta con un numero di bit per l'output superiore a 64 e tra 64 e 80 per la chiave.
+
+\paragraph{Come si applica MAC in pratica?} Per garantire anche la sicurezza, viene utilizzato in combinazione alla encriptazione. Ci sono 3 modelli principali e tutti utilizzano due chiavi diverse per l'encrypt $(e)$ e l'autenticazione $(a)$. \\
+\begin{itemize}
+	\item \textbf{SSL:} $t = S(a,m),\; c = E(e,m||t),\; m' = c$
+	\item \textbf{IpSec:} $c = E(e, m),\; t = S(a,c),\; m' = c || t$
+	\item \textbf{SSH:} $c = E(e, m),\; t = S(a, m),\; m' = c || t$
+\end{itemize}
 
 \subsection{Algoritmo di generazione MAC}
 \begin{itemize}
