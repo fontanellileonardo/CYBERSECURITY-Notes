@@ -912,7 +912,13 @@ $$ E_k(t \oplus (m \oplus t)) = t $$
 \newpage
 
 \section{Key establishment}
-Come gestire il problema dello scambio delle chiavi tra due o più entità?
+Per come abbiamo visto i sistemi Encrypt/Decrypt, la chiave utilizzata era nota a entrambe le parti.
+L'idea che ci si deve porre adesso, è su come condividere la chiave attraverso il network. La trasmissione della chiave nel network presenta molte difficoltà in quanto:
+\begin{itemize}
+	\item Una trasmissione in chiaro è impossibile, una qualsiasi persona potrebbe leggerla.
+	\item Una chiave criptata, avrebbe comunque bisogno di un'ulteriore chiave di criptazione.
+\end{itemize}
+
 \subsection{Diffie-Hellman}
 Questo protocollo permette di scambiare una chiave in maniera sicura anche usando un canale non sicuro.
 \begin{itemize}
