@@ -842,15 +842,59 @@ Si possono utilizzare le seguenti categorie di funzioni:
 \end{itemize}
 
 \paragraph{HMAC}
+Utilizza le hash functions. L'implementazione può essere la seguente:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/hmac.png}
+\end{figure}
+Questo schema di realizzazione è insicuro, in quanto è facile ottenere collisioni. \\
+Si può dimostrare con un caso: supponendo di avere una coppia $(m,t)$ tale che $t = S(k,m)$. \\
+Possiamo forgiare l'HMAC firmando un messaggio: $m^0 = m||padding||$
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/hmac2.png}
+\end{figure}
+In tal modo, facciamo sì che $w$ sia preso in ingresso dall'ultimo blocco della funzione di compressione $h$: questo blocco avrà in ingresso $w$ e $t$, cioè il risultato del penultimo blocco $h$.
+$t$ non è altro che il risultato di $S(m||padding,k)$, mentre $w$ possiamo controllarlo: attraverso la existential forgery.
+\subparagraph{HMAC Standard} Il problema precedente può essere risolto applicando un ipad (di input) alla chiave e aggiungendo un blocco finale in cui è presente l'hash di $k \oplus ipad||m$.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/hmac-standard.png}
+\end{figure}
+L'HMAC si calcola quindi come:
 $$ t = h[(k \oplus opad) || h[(k \oplus ipad) || m]]$$
-dove $opad, ipad$ sono sequenze di bit fissate specificate nello standard.
-
+dove $opad, ipad$ sono sequenze di bit fissate specificate nello standard (predefinite). \\
+Lo standard utilizza SHA-256 (PRF). \\
+TLS: HMAC-SHA1-96
+\begin{itemize}
+	\item SHA1 non è resistente alle collisioni, ma HMAC ha bisogno soltanto che la funzione di compressione sia PRF.
+\end{itemize}
+Limiti di sicurezza: Probabilità che dopo $q$ MACs, HMAC diventi insicuro: $\frac{q^2}{[T]}$ \\
+SHA-256: $q << 2^{128} =>$bene \\
+Uno dei vantaggi di questa implementazione è che se utilizzo anche uno SHA deprecated, l'HMAC risulta sempre ottimo. Necessita solo che le compression function siano a PRF.
 \paragraph{MACs from block ciphers: CBC-MAC}
 Metodo CBC:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{img/cbc-mac}
 \end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/cbc-mac2.png}
+\end{figure}
+La $F$ indica il fatto che può essere una funzione generica, non per forza la encryption. 
+Possiamo provare che questa tecnica può causare collisioni. Per evitarle, viene utilizzata una nuova funzione $F$ con una chiave differente ($k_1$). \\
+Questa tecnica non viene utilizzata in pratica a causa delle due chiavi. Dopo aver generato un numero di \textit{tag}, la chiave deve essere rigenerata. \\
+Quanti messaggi posso effettuare con CBC-MAC usando le stesse chiavi? \\ \\
+Considerando $q$ come il numero di messaggi con CBC-MAC con la stessa chiave $k$. \\
+Può essere provato che dopo $q$ messaggi, la probabilità $P$ che MAC diventi insicuro è pari a $\frac{q^2}{|X|}$
+\begin{itemize}
+	\item \textit{AES:} $|X| = 2^{128},\; P < \frac{1}{2^{32}} => q < 2^{48} =>$ bene
+	\item \textit{3DES:} $|X| = 2^{64},\; P < \frac{1}{2^{32}} => q < 2^{16} =>$ male
+\end{itemize}
+Se F è una funzione di Encrypting, l'input deve essere della dimensione di un blocco. Quest'ultima implica inoltre l'utilizzo del padding. \\
+Padding deve essere generato attraverso un algoritmo per evitare collisioni.
+
 \subparagraph{Padding} Il padding va scelto con cura:
 \begin{itemize}
 	\item Usare degli zero è insicuro perché $pad(m)$ e $pad(m||0)$ hanno lo stesso MAC 
