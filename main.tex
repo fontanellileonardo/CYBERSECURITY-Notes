@@ -911,6 +911,67 @@ $$ E_k(t \oplus (m \oplus t)) = t $$
 
 \newpage
 
+\section{Side Channel Attack}
+I Side Channel Attack sono un tipo di attacco che ha come obiettivo quello di attaccare l'implementazione degli algoritmi: sfruttano, ad esempio, le relazioni tra gli input (chiave) e l'energia o il tempo richiesto dall'algoritmo, per avere informazioni sul segreto (plaintext, chiave ecc...). \\
+Affinché questo tipo di attacco funzioni, l'avversario deve:
+\begin{enumerate}
+	\item conoscere l'implementazione dell'algoritmo
+	\item avere l'accesso fisico al dispositivo che lo implementa (tipicamente si attaccano le smartcard e sistemi embedded).
+\end{enumerate}
+Ci sono 3 tipi di attacchi Side Channel:
+\begin{itemize}
+	\item \textbf{Timing Attack:} cerco una relazione fra la chiave ed il tempo di esecuzione dell'algoritmo.
+	\item \textbf{Power Attack:} cerco una relazione fra la chiave e l'energia consumata
+	\item \textbf{Failure Injection Attack:} provo a portare il sistema in una situazione di errore o stato particolare per studiarne il comportamento.
+\end{itemize}
+Non esiste una vera teoria dietro un side channel attack, dipende totalmente dall'implementazione. Comunque questi attacchi sono possibili e piuttosto pericolosi.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{img/side-channel.png}
+\end{figure}
+Un avversario vuole inviare a $k$ un messaggio e farglielo accettare come autentico. Per fare ciò deve inviare un \textit{tag} corretto (t).
+Come può l'avversario forgiare un $t$ corretto? \\
+Sapendo che il MAC è un algoritmo sicuro, è inutile andare ad attaccare direttamente l'algoritmo. Si può utilizzare un particolare \textit{side channel attack}.
+
+\paragraph{Timing Attack} Viene implementato nella libreria Keyczar Crypto Library (Python). \\
+Nel MAC è necessario confrontare il tag, quindi quello che fa K sostanzialmente è: $t == S(k,m)$. 
+I byte vengono confrontati uno ad uno e viene data una risposta alla sorgente, dicendo se il tag fosse corretto o meno. 
+Il confronto, effettuato byte a byte, appena individua due differenti invia il messaggio \textit{rejected}. Da questo possiamo affermare che se i byte differenti sono gli ultimi, la risposta \textit{rejected} viene inviata dopo aver trascorso il tempo massimo di confronto. \\
+In questo modo, l'attaccante può sfruttare questa informazione attraverso un \textit{Timing Attack}: 
+a seconda del tempo di risposta, posso sapere quanti byte del tag ho azzeccato e continuare a cercare quelli successivi. \\
+Ogni byte ha 260 ($0x00, 0xFF$) tentativi e in totale i tentativi sono 20(dimensione tag)x256, che è molto inferiore ai $2^{160}$, che è il costo del guessing attack. \\
+Per risolvere questo problema, si deve ridefinire l'operatore "==" in un'operazione che ha costo in tempo sempre equivalente. \\
+Si ha, però, un calo delle performance e il compilatore potrebbe andare a creare nuovamente una possibilità di Timing Attack. L'avversario, infatti, potrebbe conoscere il tag che viene controllato. E quindi si effettua un'ulteriore modifica per togliere la dipendenza. \\
+Si rieffettua l'HMAC sui tag togliendo la dipendenza e la possibilità di sapere dove cambiare byte all'avversario.
+
+\paragraph{Fault Injection Attack} RSA è un algoritmo non computazionalmente semplice, quindi, per aumentare le performance, si potrebbe pensare di trovare un'implementazione ottimizzata.
+Un esempio è l'implementazione del \textit{Chinese Remainder Theorem}, il quale ci permette di cifrare e decifrare con RSA in maniera più efficiente di quella canonica. \\
+Il problema è quello di calcolare, efficientemente, $y = x^d mod(n)$. Il teorema descrive i passi:
+\begin{enumerate}
+	\item Calcolare $x_p = x \cdot mod(p), x_q = x \cdot mod(q)$
+	\item Calcolare $y_p = x_p^{d \cdot mod(p-1)} \cdot mod(p), y_q = x_q^{d \cdot mod(q-1)} \cdot mod(q)$ 
+	\item Calcolare $y = a_py_pq + a_qy_qp$, dove $a_p$ e $a_q$ sono dei coefficienti precalcolati.
+\end{enumerate}
+Qual è il vantaggio rispetto all'algoritmo canonico? \\
+$y_q$ e $y_p$ sono le quantità più difficili da calcolare. Usando il metodo \textit{square-and-multiply}, sono richieste $\#moltiplicazioni + \#quadrati = 1.5t$ operazioni, in media.
+Considerando che ogni operazione di moltiplicazione e quadrato lavora su operandi da $\frac{t}{2}$ bit, possiamo notare che la complessità dell'algoritmo è $O(\frac{t^2}{4})$. Si ottiene quindi un boost di circa 4 volte rispetto all'algoritmo canonico. \\
+Tuttavia, questo algoritmo è vulnerabile ad un attacco di tipo fault-injection: creando un fault nel dispositivo, l'avversario è in grado di fattorizzare $n$. \\
+Il problema creato dall'algoritmo e che non è possibile cancellare $p$ e $q$ finché non calcoliamo $y$, i quali non devono entrare in mano dell'avversario. L'attacco consiste nel causare un fault quando il dispositivo sta calcolando $y_p$, lasciando però intatto $y_q$, il dispositivo quindi calcolerà:
+$$y' = a_py_p'q + a_qy_qp$$
+Una volta ottenuto $y'$, l'avversario calcola:
+$$y - y' = a_p(y_p - y_p')q$$
+$p$ è stato eliminato dal risultato, a questo punto basta risolvere il problema:
+$$gcd(y - y', n) = q$$
+attraverso l'algoritmo di Euclide, diventa risolvibile in modo efficiente. \\
+Questo tipo di vulnerabilità può essere limitata introducendo schermature oppure circuiti di controllo di errori/fault (che però possono rallentare il dispositivo).
+
+\paragraph{Power Analysis} L'avversario monitora i consumi di energia del dispositivo per poi usare, ad esempio, tecniche come la \textit{Simple Power Analysis (SPA)} o la \textit{Differential Power Analysis (DPA)}, per carpire informazioni sul segreto.
+Questo tipo di attacco non è invasivo. \\
+Con il metodo SPA sostanzialmente si usa un oscilloscopio per monitorare, ad occhio, i consumi del dispositivo.
+Mentre, con il metodo DPA, che è più complesso, si utilizza sia un oscilloscopio e una macchina per la registrazione dei dati dei consumi, successivamente attraverso analisi statistiche, si elimina il rumore e si estraggono i dati significativi.
+
+\newpage
+
 \section{Key establishment}
 Per come abbiamo visto i sistemi Encrypt/Decrypt, la chiave utilizzata era nota a entrambe le parti.
 L'idea che ci si deve porre adesso, è su come condividere la chiave attraverso il network. La trasmissione della chiave nel network presenta molte difficoltà in quanto:
@@ -918,19 +979,107 @@ L'idea che ci si deve porre adesso, è su come condividere la chiave attraverso 
 	\item Una trasmissione in chiaro è impossibile, una qualsiasi persona potrebbe leggerla.
 	\item Una chiave criptata, avrebbe comunque bisogno di un'ulteriore chiave di criptazione.
 \end{itemize}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/key-management.png}
+\end{figure}
+
+\subsection{Pairwise Keys} Supponendo di avere un sistema con un certo numero di utenti:
+ciò che si può fare, è di stabilire delle \textit{Pairwise Key}: ogni utente mantiene una chiave segreta (long-term secret key) per comunicare con ogni utente del sistema.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/pairwise-key.png}
+\end{figure}
+L'utilizzo di questo approccio introduce alcune proprietà:
+\begin{itemize}
+	\item ogni utente deve mantenere $(n-1)$ chiavi ($n$ è il numero di utenti nel sistema).
+	\item In totale, nel sistema abbiamo un numero di chiavi sull'ordine di $n^2$ $O(n^2)$
+	\item L'ingresso o l'uscita di un utente nel sistema affligge tutti gli altri utenti. Ogni utente deve stabilire/eliminare la chiave per comunicare con quest'ultimo.
+\end{itemize}
+Come effettuano gli utenti questo tipo di condivisione? Il problema è ancora attivo, dato che non si sa come condividere la chiave. Un sistema potrebbe essere quello di condividere le chiavi prima che il sistema sia ON. \\
+L'utilizzo di questa tipologia di rete ha dei pro e dei contro:
+\begin{itemize}
+	\item \textbf{PRO:} Se un utente viene compromesso, un avversario riesce a ottenere le sue chiavi, solo le comunicazioni verso questo utente vengono compromesse. Le altre comunicazioni nel sistema non risentono di questo attacco.
+	\item \textbf{CONTRO:} Il sistema è poco scalabile: il numero delle chiavi complessive nel sistema è il quadrato del numero degli utenti e l'ingresso o uscita di un nuovo utente affligge ogni utente già presente nel sistema.
+\end{itemize}
+Per risolvere il Contro di questo approccio (scalabilità), si utilizza un'architettura centralizzata.
+
+\subsection{Trusted Third Party - TTP}
+Ogni utente condivide una chiave (long-term key) con il Trusted Third Party, andando a risolvere i problemi che affliggevano il sistema Pairwise: il numero totale di chiavi da mantenere e l'ingresso/uscita di nuovi utenti.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.3\textwidth]{img/ttp.png}
+\end{figure}
+In questo sistema, ogni utente deve mantenere in memoria la chiave long-term stabilita con il TTP, facendo raggiungere il numero massimo di chiavi nel sistema di $n$.
+Se un utente ha la necessità di comunicare con un altro utente, si stabilisce una chiave temporanea \textit{(short-term key)}, sfruttando la long-term key per la comunicazione con il TTP.
+\begin{center}
+	Alice: "Voglio comunicare con Bob" \\
+	Alice $\rightarrow$ TTP \\
+\end{center}
+Il TTP genera $K_{ab}$ e lo manda (2 volte), cifrandolo sia con $K_a$ che con $K_b$:
+\begin{center}
+	$E(K_a,"A,B"||K_{ab}), E(K_b, "A,B"||K_{ab})$ \\
+	Alice $\leftarrow$ TTP
+\end{center}
+Alice ora può ottenere la chiave, decifrando il messaggio con $K_a$. Resta solo da comunicare la chiave a Bob, che è già stata cifrata dal TTP:
+\begin{center}
+	$E(K_b,"A,B"||K_{ab})$\\
+	Alice $\rightarrow$ Bob
+\end{center}
+Un approccio centralizzato introduce i problemi rilevabili in un qualsiasi sistema che utilizzi lo stesso approccio:
+\begin{itemize}
+	\item TTP è un single-point-of-failure
+	\item TTP deve essere sempre attivo
+	\item TTP è a conoscenza di tutte le chiavi
+	\begin{itemize}
+		\item Teoricamente, potrebbe leggere le conversazioni di ogni utente.
+	\end{itemize}
+\end{itemize}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{img/ttp-protocol.png}
+\end{figure}
+Il secondo campo (ticket), è criptato con $K_b$. È un protocollo semplice, ma anche errato dato che non contiene nessuna informazione sul tempo, quindi uno stesso pacchetto può essere riutilizzato: \textit{subject to replay attack}. \\
+Il punto interessante di questo sistema è che usando long-term key, un utente può ottenere una chiave condivisa per comunicare con altri utenti. \\
+Come il Pairwise, questo approccio ha pro e contro:
+\begin{itemize}
+	\item \textbf{PRO:}
+	\begin{itemize}
+		\item È facile aggiungere o togliere utenti dal sistema.
+		\item Ogni utente deve mantenere in memoria solo una long-term secret key.
+	\end{itemize}
+	\item \textbf{CONTRO:}
+	\begin{itemize}
+		\item TTP deve essere sempre online
+		\item TTP deve essere efficiente
+		\item TTP deve mantenere in memoria $n$ chiavi.
+		\item Se il TTP viene compromesso, tutte le comunicazioni sono insicure.
+	\end{itemize}
+\end{itemize}
+Si deve quindi trovare un sistema per generare chiavi condivise senza l'utilizzo di un TTP o condividerle prima che il sistema sia ON (Pairwise).
 
 \subsection{Diffie-Hellman}
-Questo protocollo permette di scambiare una chiave in maniera sicura anche usando un canale non sicuro.
+Questo protocollo permette di scambiare una chiave in maniera sicura anche usando un canale non sicuro. \\ 
+Questo protocollo (del 1978) ha posto le basi della criptazione a chiave pubblica. 
+Sfrutta alcune semplici proprietà matematiche:
+\begin{itemize}
+	\item La moltiplicazione è un'operazione commutativa:
+	$$(a \cdot b) = (a \cdot b) mod(n)$$
+	\item Potenza di potenza è un'operazione commutativa:
+	$$(a^b)^c = (a^c)^b$$
+\end{itemize}
+DH genera alcuni parametri:
 \begin{itemize}
 	\item $p$ è un numero primo molto grande (2048 bit)
-	\item generatore $g : \forall y, 1 \leq y < p, \exists x : y = g^x\ mod\ p$
+	\item generatore $g : \forall y, 1 \leq y < p, \exists x : y = g^x\ mod\ p$ (primitive root)
 \end{itemize}
 Sia $p$ e $g$ sono pubblici. Ogni peer genera la chiave privata e calcola la chiave pubblica attraverso essa. La chiave di sessione sarà:
 $$ k_{ab} = g^{ab}\ mod\ p $$
-
-\paragraph{Discrete exponentiation} Dati $p$, $g$ e $x$, calcolare $y = g^x\ mod\ p$ è computazionalmente semplice.
-
-\paragraph{Discrete logarithm} Dato $g$, $1 \leq y \leq p-1$, è computazionalmente difficile determinare  $x, 1 \leq x \leq p-1 : y = g^x\ mod\ p$.
+Utilizza due operazioni matematiche:
+\begin{itemize}
+	\item \textbf{Discrete exponentiation:} Dati $p$, $g$ e $x$, calcolare $y = g^x\ mod\ p$ è computazionalmente semplice.
+	\item \textbf{Discrete logarithm:} Dato $g$, $1 \leq y \leq p-1$, è computazionalmente difficile determinare  $x, 1 \leq x \leq p-1 : y = g^x\ mod\ p$.
+\end{itemize}
 
 \subsubsection{Descrizione del protocollo nel dettaglio}
 \begin{itemize}
