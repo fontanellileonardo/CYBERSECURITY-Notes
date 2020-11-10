@@ -1105,6 +1105,47 @@ L'unica maniera per calcolare la chiave è risalire ad $a$ oppure a $b$: per cal
 $a$ tale che $y_a = g^a\;mod\;p$ e stessa cosa per $b$ tale che $y_b = g^b\;mod\;p$. \\
 Entrambe le formule rappresentano operazioni di \textbf{discrete logarithm}, le quali, sono computazionalmente difficili da realizzare.
 
+\paragraph{Complessità del Discrete Logarithm} Per poter essere sicuro $a$, $b$ e $p$ devono essere sufficientemente larghi, su $n$-bit.\\
+Prendiamo un numero primo $p$ tale per cui $p < 2^n$. Tutte le quantità sono rappresentabili su $n$-bit. \\
+L'algoritmo più efficiente per il calcolo del discrete logarithm richiede $p^{\frac{1}{2}} = 2^\frac{n}{2}$ operazioni.
+Esempi di $n$ sono da 512 bit in su: l'operazione, in questo caso, richiederebbe $2^{256} = 10^{77}$ operazioni.
+
+\paragraph{Complessità della Discrete Exponentiation}
+$Y_a = g^a \cdot mod(p)$: cosa è $g^n$? \\
+\subparagraph{Grade-School-Algorithm:} $\underbrace{g \cdot g, \cdot \ldots \cdot g}_{a-1\;\text{volte}}$ \\
+$a$ deve essere "larga" quanto $p \rightarrow a < 2^n$ \\
+Ne esiste uno più efficiente, chiamato \textit{square and multiply}, che si ottiene andando a scomporre l'esponenziazione. \\
+Considerando $a$ nella sua rappresentazione binaria:
+$$a = (a_{n-1}, a_{n-2}, \ldots, a_1, a_0)$$
+$$a = a_{n-1}2^{n-1}+a_{n-2}2^{n-2}+\ldots+a_12^1+a_0$$
+Eleviamo $g$ ad $a$:
+$$g^a = g^{a_{n-1}2^{n-1}+a_{n-2}2^{n-2}+\ldots+a_12^1+a_0}=$$
+$$=g^{a_{n-1}2^{n-1}}\cdot g^{a_{n-2}2^{n-2}}\cdot \ldots \cdot g^{a_12^1}\cdot g^{a_0}=$$
+Fattorizzo tutto eccetto $g^{a_0}$:
+$$=(g^{a_{n-1}2^{n-2}}\cdot g^{a_{n-2}2^{n-3}}\cdot \ldots \cdot g^{a_1})^2\cdot g^{a_0} =$$
+$$=((g^{a_{n-1}2^{n-3}}\cdot g^{a_{n-2}2^{n-4}}\cdot \ldots \cdot g^{a_2})^2\cdot g^{a_1})^2 \cdot g^{a_0} =$$
+$$=(\ldots((g^{a_{n-1}})^2g^{a_{n-2}})^2\ldots g^{a_1})^2g^{a_0}$$
+Dove $a_i$ appartiene a $\{0,1\}$. \\
+Quando $a_1$ è uguale a 0, la moltiplicazione non è necessaria, dato che l'esponenziale è uguale a 1. 
+Questo semplifica ulteriormente in termini di numero di istruzioni necessario per questa operazione. \\
+Il costo complessivo massimo è di $2n$ moltiplicazioni. Con $n = 1024$ sono necessarie $2048$ moltiplicazioni. \\
+L'operazione logaritmica deve essere difficile e invece necessita di una complessità di risoluzione di $p^\frac{1}{2} = 2^\frac{n}{2}$ operazioni. Il parametro $p$ indica quindi quanto è sicuro il sistema di Diffie-Hellman. \\
+Se ad esempio prendiamo $n=512$:
+\begin{itemize}
+	\item L'esponenziale richiede 1024 operazioni.
+	\item L'operazione logaritmica invece ne richiede $2^256$ che equivalgono a $10^77$ operazioni.
+\end{itemize}
+A seconda della dimensione della chiave, si necessita di più o meno bit per rappresentare $p$.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/dh-numbers.png}
+\end{figure}
+L'ottenimento di una chiave di $256bits$ necessita un parametro del modulo molto elevato, il quale rende l'operazione molto lenta. \\
+La \textit{curva ellittica} è un nuovo modo matematico (estensione di DH), che non utilizza l'operazione "mod". Tramite questo nuovo metodo, possiamo ottenere con un numero di bit necessari molto inferiore, la stessa sicurezza. \\
+DH è sicuro contro un avversario passivo, cioè che si limita a prendere informazioni della rete, ma non contro avversari attivi. 
+Nella crittografia, un attacco attivo su un sistema di comunicazione è uno in cui l'attaccante cambia la comunicazione. Può creare, forgiare, alterare, sostituire, bloccare o reindirizzare i messaggi. 
+Ciò contrasta con un attacco passivo in cui l'attaccante si limita ad origliare: può leggere messaggi che non dovrebbe vedere, ma non altera i messaggi.
+
 \subsubsection{Attacchi al protocollo}
 
 \paragraph{Passive attack}
@@ -1117,6 +1158,10 @@ Un attacco \textit{Man-In-The-Middle (MITM)} può rompere DH. Un avversario può
 L'avversario si interpone, quindi, tra Alice e Bob, sostituendo i valori $y_a$ e $y_b$ trasmessi, con $y_c = g^c\;mod\;p$ ricordando che $p$ e $g$ sono pubblici, mentre $c$ è un numero casuale che viene generato dall'avversario.
 Quindi, Alice otterrà la chiave: $$(y_c)^a\;mod\;p = g^{ac}\;mod\;p = K_{ac}$$
 Bob otterrà la chiave: $$(y_c)^b\;mod\;p = g^{ab}\;mod\;p = K_{cb}$$
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/mim.png}
+\end{figure}
 A questo punto l'avversario può decifrare i messaggi di Alice (usando la chiave $K_{ab}$), per poi cifrarli con la chiave $K_cb$ e trasmetterli a Bob. 
 Lo stesso discorso può essere fatto nel senso opposto. Le due parti non si accorgono nemmeno dell'intromissione dell'avversario. \\
 Il problema, in questo caso, è che i valori $y_a$ e $y_b$ non sono associati, in alcun modo, alle identità di Alice e Bob. Quindi, un semplice database centralizzato non è sufficiente a risolvere il problema, in quanto l'avversario potrebbe alterare le chiavi trasmesse agli utenti, in uscita dal database. \\
