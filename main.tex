@@ -1178,6 +1178,12 @@ $$m = D(privk,c)$$
 La proprietà di consistenza è descrivibile come:
 $$\forall privk,pubk \; D(privk, E(pubk,m)) = m$$
 La crittografia pubblica è utilizzata per stabilire la chiave.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/public-key-encryption.png}
+\end{figure}
+Il modello indica il meccanismo generale sul quale si basa la crittografia a chiave pubblica: Alice vuole comunicare con Bob, cripta il messaggio con la chiave pubblica di Bob e lo invia.
+Questo messaggio può ora essere decriptato solo tramite la chiave privata che è in possesso solo di Bob. \\
 
 \subsection{Security properties}
 \begin{itemize}
@@ -1192,29 +1198,55 @@ Non esiste uno schema di public key perfetto
 	\item Calcola $y_0 = E(pubk, x_0)$
 	\item \texttt{if} $y == y_0$ $x$ è trovato \\ \texttt{else} $P(X=x_0|Y=y) = 0$
 \end{enumerate}
-Le probabilità \textit{a-priori} e \textit{a-posteriori} sono differenti e violano la definizione di Shannon di perfect secrecy.
+Le probabilità \textit{a-priori} e \textit{a-posteriori} sono differenti e violano la definizione di Shannon di perfect secrecy.\\
+Per quanto riguarda la sicurezza computazionale:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/pub-mim.png}
+\end{figure}
+Si utilizza $E$ per criptare il messaggio. Il problema del Man-in-the-middle è sempre presente ed è risolto tramite l'utilizzo del certificato. \\
+Dalla figura si vede inoltre che il messaggio $x$ viene criptato interamente, questo però comporta problemi in quanto il messaggio potrebbe essere molto grande, andando a penalizzare le prestazioni del sistema. \\
+Un metodo più efficiente è:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/pub-sol.png}
+\end{figure}
+Tramite la crittografia a chiave pubblica, possiamo superare il più grande problema della crittografia simmetrica, cioè la condivisione della chiave, a discapito dell'esistenza del problema man-in-the-middle.
+Per risolverlo, quindi, basta aggiungere un certificato alla prima transizione. 
 
 \section{RSA}
+È attualmente il sistema asimmetrico più utilizzato nel mondo. Il suo largo utilizzo è dovuto al fatto che è molto resistente, non può essere attaccato l'algoritmo ma solo l'implementazione attravverso attacchi \textit{side-channel}. \\
+È utilizzato in diverse applicazioni, come la cifratura di piccoli messaggi o forme digitali.
 Lo schema introduce 3 funzioni: G, E, D.
 \subsection{Key generation algorithm G}
 \begin{enumerate}
 	\item Selezionare due numeri primi "grandi" (512/1024 bit) $p$ e $q$
-	\item Calcolare \textit{modulus} $n = p \cdot q$ e \textit{Eulero's totient} $\Phi = (p-1)\cdot(q-1)$
-	\item Calcolare $1 \leq e < \Phi : MCD(e, \Phi) = 1$ ($e$ e $\Phi$ compresse)
-	\item Calcolare $1 \leq d < \Phi : e\cdot d = 1\ mod\ \Phi$, i.e. $e\cdot d = r\cdot\Phi + 1$ per alcuni $r$
+	\item Calcolare \textit{modulus} $n = p \cdot q$ (modulus) e \textit{Eulero's totient} $\Phi = (p-1)\cdot(q-1)$
+	\item Seleziona un numero random $e$ tale per cui: $1 \leq e < \Phi : MCD(e, \Phi) = 1$ ($e$ e $\Phi$ compresse)
+	\item Calcolare l'intero $d$, tale che: $1 \leq d < \Phi : e\cdot d = 1\ mod\ \Phi$, i.e. $e\cdot d = r\cdot\Phi + 1$ per alcuni $r$
 	\item $pubk = (e,n)$ e $privk = (d,n)$
 	\item Distruggere $p$ e $q$
 \end{enumerate}
 
 \subsection{Encryption E}
+Per generare il ciphertext $c$ da un messaggio $m$, l'algoritmo di encryption segue i seguenti passaggi:
+\begin{enumerate}
+	\item Ottenere l'autentica chiave pubblica $(n,e)$ del destinatario del messaggio.
+	\item Considerare il messaggio come un numero intero $m$ nell'intervallo $[0, n-1]$. V
+	Vedremo successivamente che se $m$ è un numero intero superiore a $n$ verrà spezzato in più parti, ognuna delle quali con valore inferiore a $n$.
+	\item Viene calcolato $c = m^e \cdot mod(n)$
+	\item $c$ viene a questo punto inviato verso la destinazione.
+\end{enumerate}
 $$ x \in [0, n-1], y = x^e\ mod\ n$$
 
 \subsection{Decryption D}
+Il destinatario alla ricezione del ciphertext $c$ per ottenere il messaggio originale $m$ deve utilizzare la sua chiave privata $(d,n)$ nella seguente operazione $m = c^d \cdot mod(n)$.
 $$ y \in [0, n-1], x = y^d\ mod\ n$$
+
+Entrambi gli algoritmi utilizzano l'operazione matematica \textit{modular exponentation}.
 
 \subsection{Square-and-multiply algorithm}
 Questo algoritmo è utilizzato per effettuare l'esponenziazione modulare $x^e\ mod\ n$ con una complessità di $O(k^3)$
-
 \begin{algorithm}[H]
 \begin{algorithmic}
 \State $c \gets 1$
@@ -1230,11 +1262,28 @@ L'efficienza è raggiunta scegliendo $e$ con pochi bit uguali a 1, ad esempio $2
 Il calcolo di $x$, conoscendo $(e,n)$ e $y$, è relativo al problema della \textit{fattorizzazione}.
 Calcolare il componente di decriptazione $d$ dalla chiave pubblica $(e,n)$ è computazionalmente equivalente a fattorizzare $n$.
 
+\subsubsection{RSAP}
+Definizione: Ottenere il plaintext $m$ dal ciphertext $c$, avendo a disposizione solo la chiave pubblica $(n,e)$. \\
+Questo problema (RSAP) che abbiamo detto essere riconducibile alla fattorizzazione, in realtà non è vero. RSAP è \textit{al massimo} equivalente o inferiore alla fattorizzazione, non maggiore. \\
+Osservazioni sulla sicurezza di RSA: \\
+\textbf{Teorema:} Calcolare la $d$ avendo a dispozione la chiave pubblica $(n,e)$, è computazionalmente equivalente a fattorizzare $n$.
+\begin{itemize}
+	\item Se l'avversario può in qualche modo fattorizzare $n$, allora può calcolare la chiave privata $d$ in modo efficiente 
+	\item Se l'avversario riuscisse in qualche modo a calcolare $d$, potrebbe successivamente calcolare $n$ in modo efficiente.
+\end{itemize}
+\textbf{e-th root:} visto che $c = m^e \cdot mod(n)$, allora potremmo pensare di trovare $m$ facendo:
+$$m = \sqrt[e]{c} \cdot mod(n)$$
+\begin{itemize}
+	\item Calcolare la radice \textit{e-th} è un problema computazionalmente facile, se e solo se $n$ è un numero primo.
+	\item Se $n$ è un numero composto, il problema del calcolo della radice è equivalente alla fattorizzazione.
+\end{itemize}
+Si deve quindi aggiungere una proprietà: $p$ 
+
 \subsection{RSA security}
 \subsubsection{Small plaintext problem}
 Se il plaintext è troppo piccolo, il ciphertext risultante è equivalente al plaintext. \\
 Ovvero, si va ad attaccare lo spazio dei messaggi: l'avversario è in grado di trovare il plaintext dopo un certo numero di iterazioni. 
-Per risolvere il problema bisogna ingrandire questo spazio, ad esempio accodando al messaggio inviato un numero randomico di una certa dimensione: questo numero è chiamato \textit{salt} e serve solo a questo scopo.
+Per risolvere il problema bisogna ingrandire questo spazio, ad esempio accodando al messaggio inviato un numero randomico di una certa dimensione: questo numero è chiamato \textit{salt} e serve solo a questo scopo. \\
 
 \subsubsection{Malleability}
 Un avversario conosce $c = p^e\ mod\ n$ e può calcolare
