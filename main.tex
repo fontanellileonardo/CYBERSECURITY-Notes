@@ -1277,15 +1277,17 @@ $$m = \sqrt[e]{c} \cdot mod(n)$$
 	\item Calcolare la radice \textit{e-th} è un problema computazionalmente facile, se e solo se $n$ è un numero primo.
 	\item Se $n$ è un numero composto, il problema del calcolo della radice è equivalente alla fattorizzazione.
 \end{itemize}
-Si deve quindi aggiungere una proprietà: $p$ 
+Si deve quindi aggiungere una proprietà: $p$ e $q$ devono essere grandi, primi e inoltre $(p-q)$ non può essere piccolo.
 
 \subsection{RSA security}
+La versione base \textit{Plain RSA}, che è la definizione base dell'algoritmo, non è utilizzata in pratica per vari motivi.
 \subsubsection{Small plaintext problem}
 Se il plaintext è troppo piccolo, il ciphertext risultante è equivalente al plaintext. \\
 Ovvero, si va ad attaccare lo spazio dei messaggi: l'avversario è in grado di trovare il plaintext dopo un certo numero di iterazioni. 
 Per risolvere il problema bisogna ingrandire questo spazio, ad esempio accodando al messaggio inviato un numero randomico di una certa dimensione: questo numero è chiamato \textit{salt} e serve solo a questo scopo. \\
 
 \subsubsection{Malleability}
+Il problema della malleabilità è dovuta alla presenza dell'\textit{omomorfismo}. Questa proprietà viene utilizzata anche in altri campi, per avere comportamenti avanzati. In questo caso specifico dell'RSA, questa proprietà introduce problemi. \\
 Un avversario conosce $c = p^e\ mod\ n$ e può calcolare
 $$ c' = c \cdot s^e\ mod\ n = p^e \cdot s^e\ mod\ n = (p \cdot s)^e\ mod\ n = p'\ mod\ n $$
 dove $s$ è un intero tale che $MCD(s, n) = 1$.
@@ -1344,7 +1346,92 @@ La firma digitale può essere costruita utilizzando RSA:
 La funzione di firma equivale alla funzione di criptazione RSA, mentre l'operazione di verifica equivale a quella di decriptazione.
 Questa è una proprietà relativa solo a RSA e non vale in generale. Restano ancora valide tutte le altre proprietà.
 
-\subsection{Properties from hash function}
+\paragraph{Firma digitale attraverso l'utilizzo del MAC}
+Col MAC, ogni utente conoscerebbe il $k$ utilizzato per generare il MAC originale $t$:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{img/firma-mac.png}
+\end{figure}
+Un utente malizioso utilizzando $k$ potrebbe rigenerare un nuovo patch e ridistribuirlo. In un sistema trusted, è utilizzabile questo schema, ma non in un e-commerce.
+Per risolvere questo problema, si potrebbe generare un MAC per ogni utente. In questo caso lo schema sarebbe sicuro, ma risente nelle performance.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{img/firma-mac2.png}
+\end{figure}
+Comparazione dei due approcci:
+\begin{itemize}
+	\item \textit{Singola chiave condivisa:} un cliente può forgiare un nuovo \textit{tag} rendendolo inutilizzabile in un sistema senza fiducia tra gli utenti.
+	\item \textit{Chiave per ogni collegamento point-to-point:} introduce overhead diventando ingestibile.
+\end{itemize}
+A questo punto, si può fare un confronto con la Digital Signature:
+\begin{itemize}
+	\item Verificabilità pubblica:
+	\begin{itemize}
+		\item DS: chiunque può verificare la firma.
+		\item MAC: solo chi è in possesso della chiave può verificare.
+	\end{itemize}
+	\item Trasferibilità:
+	\begin{itemize}
+		\item DS: può inviare la firma a chiunque
+		\item MAC: non si può.
+	\end{itemize}
+\end{itemize}
+La Digital Signature non è ripudiabile. \\
+Il firmatario non può (facilmente) negare l'emissione di una firma. Questo è cruciale per applicazioni legali e il giudice può verificare la firma usando una copia della chiave pubblica. \\
+I MAC, non possono fornire questa funzionalità: senza l'accesso alla chiave, non c'è nessun modo per verificare un \textit{tag}. Anche se il ricevente perde la chiave per giudicare, come può il giudice verificare che la chiave sia corretta? Anche se la chiave è corretta, il ricevitore potrebbe aver generato il tag. \\
+La proprietà principale della digital signature è la non replicazione. Nessuno oltre ad Alice può generare $\sigma$, in quanto viene generato dalla chiave privata. Nel MAC viene generata attraverso $k$, che è mantenuto da tutti gli utenti del sistema introducendo un fattore di replicazione. \\
+\subparagraph{Definizione:} Una firma digitale è un numero che dipende da un segreto noto solo al firmatario (chiave privata) e, in aggiunta, dal contenuto del messaggio che viene firmato.
+\subparagraph{Proprietà:} Una firma digitale deve essere verificabile. \\
+In caso di controversia, una terza parte imparziale deve essere in grado di risolvere la disputa in modo equo, senza richiedere l'accesso al segreto del firmatario. Da questo si ottiene che la firma digitale è un meccanismo molto forte in quanto fornisce sia la \textbf{verificabilità} che la \textbf{non replicabilità}.
+
+\subsection{Schema generale}
+La firma digitale è strutturata da 3 algoritmi:
+\begin{itemize}
+	\item L'algoritmo di generazione della chiave $G()$. Questo prende come input un numero $n$ e restituisce le due chiavi $(p_k, s_k)$.
+	\item Algoritmo di generazione della firma digitale $S()$. Prende come input la chiave privata $s_k$ e un messaggio $m$. Fornisce come output la firma $\sigma$.
+	\item Algoritmo di verifica della firma $V()$. Prende come input la chiave pubblica $p_k$, la firma $\sigma$ e (opzionalmente) il messaggio $m$. Fornisce come output \textit{true} o \textit{false}.
+\end{itemize}
+Questi 3 algoritmi devono essere consistenti:
+\begin{center}
+	Per ogni messaggio $m$ e chiavi $(p_k, s_k)$, $V(p_k, [m], S(s_k, m)) = \text{true}$
+\end{center}
+
+\subsection{Schema di firma digitale attraverso RSA}
+È il più diffuso schema utilizzato per effettuare una firma digitale. È esattamente lo stesso algoritmo RSA utilizzato in fase di criptazione e quindi gode delle stesse proprietà. È l'unico caso in cui uno stesso algoritmo utilizzato per criptazione e firma digitale utilizza esattamente le stesse funzioni:
+\begin{center}
+	$(e,n)$ chiave pubblica \\
+	$(d,n)$ chiave privata \\
+\end{center}
+Le funzioni descritte dallo schema sono:
+\begin{itemize}
+	\item Firma: $S(m, (d,n)) \rightarrow \sigma = m^d \cdot mod(n)$
+	\item Verifica: $V() \rightarrow \sigma^e \cdot mod(n)$
+\end{itemize}
+La funzione firma equivale alla funzione \textit{criptazione} RSA, mentre l'operazione verifica equivale a quella di decriptazione.
+Dal punto di vista computazionale, le osservazioni fatte sono equivalenti.
+
+\subsubsection{Attacchi all'algoritmo}
+Partiamo dal presupposto che il verificatore della firma, deve avere la corretta chiave pubblica. \\
+In accordo alla rottura di RSA, è necessario calcolare $d$ (parte della chiave privata). Per fare ciò, l'attacco più generale è quello di fattorizzare $n$. Se questo modulo è sufficientemente grande, non è possibile ottenere $d$.
+
+\paragraph{Existential forgery} Equivale a riuscire a produrre una firma digitale valida su un messaggio random $x$. Il messaggio $m$ è casuale e potrebbe non avere alcun significato di applicazione. Tuttavia, questa proprietà non è desiderabile.
+
+\subparagraph{Malleabilità} Combinare due firme per ottenerne una terza (existential forgery). \\
+L'attacco:
+\begin{center}
+	Dato $\sigma_1 = m_1^d \cdot mod(n)$ \\
+	Dato $\sigma_2 = m_2^d \cdot mod(n)$ \\
+	Output $\sigma_3 = (\sigma_1 \cdot \sigma_2) \cdot mod(n)$ che è una firma valida per $m_3 = (m_1 \cdot m_2) \cdot mod(n)$ \\
+	\textbf{Dimostrazione:} $\sigma_3^e = (\sigma_1 \cdot \sigma_2)^e = \sigma_1^e \cdot \sigma_2^e = m_1 \cdot m_2 \cdot mod(n)$
+\end{center}
+La risoluzione anche qua è l'utilizzo di una sorta di ridondanza o firmare l'hash. \\
+Per risolvere ciò esistono diversi schemi:
+\begin{itemize}
+	\item Probabilistic Signature Scheme (PSS) in PKCS\#1
+	\item Full Domain Hash (RSA-FDH)
+\end{itemize}
+
+\subsection{Proprietà dalla funzione hash}
 Un problema da considerare, utilizzando questo algoritmo, è che $m$ ha, in genere, una dimensione alta (pensare per esempio a documenti, file multimediali, patch ecc...)
 e quindi l'operazione di firma potrebbe risultare molto lenta. Per risolvere questo problema si possono utilizzare funzoni hash per sintetizzare $m$ e poi firmare l'hash ottenuto. \\
 La scelta di utilizzare una funzione hash per la firma digitale può comportare alcuni rischi e mettere in dubbio le garanzie di integrità, non ripudiabilità e autenticità delle firme.
@@ -1373,10 +1460,24 @@ Se $h$ non è collision resistance, un componente non fidato può:
 	\item E affermare che ha effettivamente emesso $(m', \sigma)$
 \end{enumerate}
 
+\subsection{Non ripudiabilità vs autenticità}
+\textbf{Definizione:} la non ripudiabilità impedisce a un firmatario di firmare un documento e successivamente essere in grado di negare con successo di averlo fatto.
+L'autenticità basata sulla crittografia simmetrica, consente a una parte di ottenere l'integrità/autenticità di un determinato messaggio in un dato momento $t_0$. La non ripudiabilità (basato su crittografia a chiave pubblica), consente a una parte di convincere gli altri in qualsiasi momento $t_1 \geq t_0$ dell'integrità/autenticità di un dato messaggio al tempo $t_0$. \\
+La firma digitale di Alice per un dato messaggio, dipende dal messaggio e un segreto noto solo ad Alice (la chiave privata). Bob verifica la firma digitale attraverso un altro valore: la chiave pubblica. 
+L'autenticità del mittente di un messaggio fornita da una firma digitale è valida solo nel periodo di tempo nel quale è mantenuta la segretezza della chiave privata del firmatario. \\
+Una minaccia che deve essere affrontata è un firmatario che rivela intenzionalmente la sua chiave privata e, successivamente, afferma che una firma precedentemente valida è stata falsificata. \\
+Questa minaccia può essere affrontata da:
+\begin{itemize}
+	\item Impedire l'accesso diretto alla chiave.
+	\item Uso di un agente \textit{timestamp} di fiducia.
+	\item Uso di un notaio di fiducia.
+\end{itemize}
+
 \newpage
 
 \section{Certificate}
-Un certificato linka l'identificatore alla chiave pubblica.
+I certificati sono il meccanismo principale per affrontare il problema dell'autenticazione della chiave pubblica. \\
+Un certificato, quindi, linka l'identificatore alla chiave pubblica.
 $$ CERT_A = (Alice, pubkey_A, L_A, S_{CA}(Alice, pubkey_A, L_A))$$
 Ogni certificato ha un periodo di validità ($L_A$), dopo e prima il quale ogni firma applicata dalla persona non è valida. 
 I certificati possono essere revocati, e questo avviene quando:
@@ -1387,7 +1488,8 @@ I certificati possono essere revocati, e questo avviene quando:
 A tal proposito, ogni \textit{Certification Authority} pubblica una lista che contiene tutti i certificati revocati, chiamata \textit{Certificate Revocation List (CRL)}.
 La lista viene firmata, per ovvi motivi, dalla stessa Certification Authority. L'indirizzo a questa lista è indicato in uno dei campi del certificato stesso, tra i quali è presente anche un campo che specifica per quali scopi la chiave pubblica associata può essere utilizzata (es. firma, cifratura).
 
-\paragraph{Approfondimento su Certification Authority (CA)} È un'entità che si occupa di rilasciare i certificati, verificando l'identità del richiedente. \\
+\subsection{Certification Authority (CA)} 
+È un'entità (TTP) che si occupa di rilasciare i certificati, verificando l'identità del richiedente. \\
 In particolare deve:
 \begin{itemize}
 	\item verificare che il nome della persona sia associato alla chiave da certificare
@@ -1408,7 +1510,40 @@ La revoca deve essere fatta:
 	\item correttamente, in quanto può essere solo convalidata da entità autorizzate (quali il proprietario e l'entità di certificazione)
 	\item in tempo, deve essere diffusa a tutte le parti interessate nel minor tempo possibile
 \end{itemize}
-\subparagraph{Verifica di un certificato} Bob può verificare l'autenticità della chiave pubblica di Alice, dal suo certificato, in questo modo:
+
+\subsubsection{Generazione di un certificato}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/ca-gen.png}
+\end{figure}
+Con l'assunzione che il canale utilizzato sia un canale autenticato, non soggetto al MIM. \\
+Alice invia una REQ alla CA, indicando i due parametri che siano collegati, l'identita (Alice) e la chiave pubblica. \\
+La CA a questo punto avvia una \textit{challenge response} per avere la certezza che Alice tenta la corrispondente chiave privata.
+La challenge response è un protocollo in realtà molto semplice:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{img/ca-challenge.png}
+\end{figure}
+La CA calcola un valore random $c$ e lo invia ad Alice, che a sua volta dovrà criptarlo tramite la chiave privata e rinviarlo. La CA verifica la risposta decriptando con la chiave pubblica già ricevuta. \\
+Una volta effettuato questo protocollo, la CA produce il certificato, firmandolo attraverso la sua chiave privata e lo invia ad Alice attraverso un canale sicuro. ($L_a$ periodo di validità)
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{img/ca-generated.png}
+\end{figure}
+\subsubsection{Threshold crypto}
+Nella crittografia a chiave pubblica, ogni utente ha una chiave pubblica e una privata. Si è inoltre visto, che posso usarla sia in cifrario che in firma digitale che in key establishment. \\
+La chiave privata in tutto ciò risulta estremamente importante, perciò deve essere protetta sia dal punto di vista della sicurezza, che della disponibilità (non deve essere persa). Una cosa importante riguarda quindi il \textit{backup} della chiave privata. \\
+È stato introdotto nei primi anni 90, un meccanismo di sicurezza di mantenimento della chiave privata, necessaria per la firma digitale, per evitare il backup: il \textbf{Threshold crypto}. \\
+L'idea sulla quale si basa questo meccanismo è quella di sfruttare l'omomorfismo e suddividere la chiave privata in $n$ componenti chiamati \textit{shares}. Per ricompletare la chiave privata sono necessari $t$ shares, dove $t < n$.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{img/threshold-crypto.png}
+\end{figure}
+Questo meccanismo risulta potente quando unisco la proprietà dell'omomorfismo dell'RSA. 
+Se prendo la chiave privata e faccio un \textit{secret shared}, volendo fare una firma digitale, posso far effettuare le firme a ognuno degli $n$ proprietari delle porzioni e poi attraverso la moltiplicazione ottenere la firma digitale. \\
+Una tecnica per implementare ciò è attraverso l'utilizzo dei polinomi con aritmetica modulare.
+
+\subsection{Verifica di un certificato} Bob può verificare l'autenticità della chiave pubblica di Alice, dal suo certificato, in questo modo:
 \begin{enumerate}
 	\item Si procura la chiave pubblica della Certification Authority
 	\item Verifica la validità della chiave pubblica
@@ -1417,6 +1552,25 @@ La revoca deve essere fatta:
 	\item Verifica che il certificato non sia stato revocato
 \end{enumerate}
 Se tutte le verifiche sono positive, allora Bob può considerare la chiave pubblica di Alice valida.
+
+\subsection{Certificate revocation}
+Tutti i certificati revocati sono posti in una lista chiamata \textit{Certificate Revocation List} (CRL), tutti i campi sono firmati dalla Certification Authority:
+\begin{itemize}
+	\item serial number
+	\item data di revoca
+	\item motivo di revoca
+\end{itemize}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/crl.png}
+\end{figure}
+
+\subsection{Campi del certificato}
+La struttura del certificato è standardizzata sotto il nome di \textbf{X509}.\\
+È prevista la presenza di una serie di campi: la versione, il numero seriale, il nome dell'issuer, la validità del certificato, la chiave pubblica e così via.
+Ogni certificato indica un \textit{Nome Distintivo (Distinguished Name)}, il quale è un identificativo unico relativamente all'entità da certificare: 
+questo nome è composto da una serie di campi quali, ad esempio: Country (CO), Organization (O), Organizational Unit (OU), Common Name (CN). \\
+Nei certificati è inserito anche l'indirizzo della CRL. Viene descritto anche l'indirizzo del \textit{Certificate Practice Statement (CPS)}, nella quale l'ente che certifica definisce tutte le politiche e regole per verificare l'identità dei soggetti certificati.
 
 \subsection{Diffie-Hellman MITM solution}
 \begin{figure}[H]
@@ -1428,17 +1582,23 @@ Se tutte le verifiche sono positive, allora Bob può considerare la chiave pubbl
 Se Bob vuole una firma certificata, deve avere un certificato come questo:
 $$ CERT_B = S_{CA}(Bob, pubkey_B, ..., "CA:yes")$$
 
-\subsection{Certificate revocation}
-Come detto, tutti i certificati revocati sono posti in una lista chiamata \textit{Certificate Revocation List} (CRL), tutti i campi sono firmati dalla Certification Authority:
-\begin{itemize}
-	\item serial number
-	\item data di revoca
-	\item motivo di revoca
-\end{itemize}
+\subsection{Trust model}
+Il modello nella CA è tipicamente questo:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/trust-model.png}
+\end{figure}
+Alice, per verificarlo, ha necessità della chiave pubblica della CA. Alice quando si iscrive alla CA, potrebbe recarsi direttamente nella società della CA o ottenerla in altri modi. \\
+Un utente, quindi, fidandosi della CA, si fida anche di Bob, che è stato già accettato dalla CA. Quindi, la chiave pubblica che ricevo relativa a Bob, posso crederla come effettivamente associata a lui. \\
+Se il sistema CA, però, è lontano, tutti gli utenti non possono recarsi direttamente sul posto. Per questo è stato introdotto un sistema gerarchico distribuito sul territorio. Il meccanismo è lo stesso, in quanto gli utenti devono avere fiducia della radice CA, che a sua volta delega delle CA. \\
+In questo caso, quindi, il certificato di B è rilasciato da $CA_B$ che a sua volta è verificata dalla radice:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/trust-root.png}
+\end{figure}
+\paragraph{Modello enterprise}
 
-\subsection{Private key backup: Threshold Crypto}
-L'idea è quella di splittare la chiave privata in $n$ parti, archiviate in $n$ server differenti.
-Per ricostruire la chiave, sono necessarie soltanto $t : t < n$ utilizzando, per esempio, un algoritmo polinomiale lineare.
+\newpage
 
 \section{Perfect Forward Secrecy (PFS)}
 DEF: la divulgazione di materiale per chiavi segrete a lungo termine non compromette la segretezza delle chiavi scambiate nelle esecuzioni precedenti.
