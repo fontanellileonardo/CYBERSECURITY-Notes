@@ -1583,6 +1583,7 @@ Se Bob vuole una firma certificata, deve avere un certificato come questo:
 $$ CERT_B = S_{CA}(Bob, pubkey_B, ..., "CA:yes")$$
 
 \subsection{Trust model}
+\subsubsection{Modello centralizzato}
 Il modello nella CA è tipicamente questo:
 \begin{figure}[H]
 	\centering
@@ -1596,7 +1597,32 @@ In questo caso, quindi, il certificato di B è rilasciato da $CA_B$ che a sua vo
 	\centering
 	\includegraphics[width=0.5\textwidth]{img/trust-root.png}
 \end{figure}
-\paragraph{Modello enterprise}
+\subsubsection{Modello enterprise - cross-certification}
+È un modello usato in ambito aziendale: si basa su un meccanismo di mutua certificazione. Si hanno due CA indipendenti, non c'è più una radice.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/cross-certification.png}
+\end{figure}
+Può essere usato, ad esempio, nel caso di un'azienda produttrice di software deve rilasciare un programma per una piattaforma di un'altra azienda produttrice: in questo caso l'applicazione viene certificata dalla prima azienda e poi dalla seconda.
+Esiste anche il modello \textit{Hub-and-Stroke}, nella quale c'è una CA che si occupa di verificare unità certificate da altre CA.
+
+\subsubsection{Modello browser web}
+Ogni browser installa, localmente, una lista di certificati di CA, alle quali sarà data piena fiducia. È possibile ancora avere CA subordinate. Questo modello introduce dei problemi per via delle politiche che portano alla decisione di integrare nuove CA nella lista (molti produttori di browser chiedono un semplice compenso). Inoltre ci sono stati vari casi di CA root o CA subordinate compromesse, le quali hanno permesso di realizzare attacchi di tipo MIM (in questo caso chiamati anche attacchi di Key-bridging o Crypt-Recrypt). \\
+Che tipo di contromisure si possono prendere per evitare questi attacchi?
+\begin{enumerate}
+	\item Avere una lista di \textit{Known-good Certification Authority}, oltre alle \textit{presumed-good}: se un sito web è certificato con una presumed-good quando già lo è per una known-good, allora si avverte l’entità di quest’ultimo certificato (Chrome lo fa già per Google).
+	\item Avere una lista pubblica di certificati rilasciati dalla CA (ma questo spesso non è possibile).
+	\item Avere più certificati da un set di CA fidati.
+	\item se usassimo un meccanismo di \textit{DNS-based Authentication}, potremmo esporre la chiave pubblica tramite questo meccanismo (ciò e nella risposta del DNS)
+\end{enumerate}
+Da un pò di tempo sono stati introdotti i certificati di tipo \textit{Extended Validation}, per i quali vengono effettuati dei controlli più forti e concreti sulle identità dei soggetti. In tutto ciò esiste un problema di fondo: le CA non sono spinte a migliorare e rendere più sicuro questo modello perché, alla fine, le vittime degli attacchi restano sempre e solo gli utenti.
+
+\subsubsection{Modello PGP}
+Modello non più gerarchico, usato per firmare le mail. È un modello di trust completamente decentralizzato. \\
+Per esempio, supponendo che Alice voglia collegarsi con Bob e volesse inviargli un messaggio confidenziale. Alice non conosce Bob e potrebbe chiedere ai suoi amici se lo conoscono e se gli rilasciano un certificato per validarlo.
+Alice raccoglie un certo numero di certificati e poi è lei che decide quanta fiducia dare a ciascuno di questi certificati.
+Alice può quindi effettuare delle policy: se nessuno ha trust massimo, ma almeno 2 trust marginale, allora mi fido di Bob. \\
+Questo PGP è software libero ed è valido per situazioni personali. La revoca è molto complicata, se so che Bob non è più autentico allora dovrei prendermi la briga di revocare tutti i certificati sulla rete.
 
 \newpage
 
@@ -1610,6 +1636,10 @@ Le chiavi $a$ e $b$ sono effimere, perché sono utilizzate una volta a sessione 
   \centering
   \includegraphics[width=0.5\textwidth]{img/psk-dhe}
 \end{figure}
+L'idea è quella di usare Diffie Hellman per scambiare una chiave temporanea, la quale viene cifrata per motivi di autenticazione (evitare attacchi man-in-the-middle). \\
+Supponendo che $K_{AB}$ venga rubata dall'avversario, il quale ha anche registrato i messaggi scambiati nelle sessioni precedenti: quello che può fare è decifrare i primi due messaggi, dai quali ottiene $y_a = g^a \cdot mod(p)$ e $y_b = g^b \cdot mod(p)$.
+A questo punto deve risalire ad $a$ e $b$ ma, come abbiamo visto per Diffie-Hellman, è necessaria un'operazione di \textit{discrete logarithm}, la quale è computazionalmente difficile.
+Si è anche protetti da attacchi di reply, per via della generazione biparte delle chiavi. Le sessioni future possono essere compromesse solo per via di attacci MIM.
 
 \subsection{Ephemeral RSA}
 La chiave privata è utilizzata per l'autenticazione.
@@ -1618,7 +1648,9 @@ B genera $Tpubk$ e $Tprivk$ sul momento per scambiare la chiave di sessione.
   \centering
   \includegraphics[width=0.5\textwidth]{img/rsae}
 \end{figure}
-Notare che A, alla fine della fase di scambio delle chiavi, non ha nessuna garanzia che B abbia la chiave nelle sue mani.
+Notare che A, alla fine della fase di scambio delle chiavi, non ha nessuna garanzia che B abbia la chiave nelle sue mani. \\
+La firma serve per provare ad Alice che la chiave pubblica proviene da Bob, mentre R serve per indicare che non è una vecchia connessione, ma nuova. 
+
 
 \subsection{Station-To-Station (STS) protocol}
 Garantisce Perfect Forward Secrecy e autenticazione diretta (o conferma della chiave).
@@ -1632,6 +1664,8 @@ La coppia $<Y_A,Y_B>$ è firmata in modo da evitare attacchi MITM. Il criptaggio
 \newpage
 
 \section{BAN logic}
+È una logica che permette di analizzare i protocolli. La logica non può dimostrare che un protocollo sia sbagliato, tuttavia, se non riesci a dimostrare un protocollo corretto, allora quel protocollo va considerato con sospetto.
+È una logica che cerca di formalizzare un protocollo crittografico cercando di astrarre il più possibile dalla tecnologia.
 \subsection{Formalismi}
 \begin{itemize}
 	\item $P \believes Q$: P crede a X. P si comporta come se X sia vero.
@@ -1677,8 +1711,12 @@ Se P crede a Q che dice X e P ha fiducia in Q riguardo X, allora P crede anche a
 \[P \believes Q \believes P \sharekey{k_{PQ}} Q\]
 \[Q \believes P \believes P \sharekey{k_{PQ}} Q\]
 
-\section{Kerberos}
+\newpage
 
+\section{Kerberos}
+È un sistema con TTP, basato sul protocollo Needham-Schroeder, dove uno dei partecipanti, tipicamente utente, collegato alla workstation e l'altro è un server.
+Si vuole inoltre garantire: \textit{Sicurezza, Availability, Transparency, Scalability}. \\
+Ci sono due segreti a lungo termine condivisi a priori, dove la chiave dell'utente è generata dalla password tramite qualche funzione.
 \begin{itemize}
 	\item $k_B$ è parte della configurazione del sistema
 	\item $k_A = f(password)$
@@ -1714,7 +1752,16 @@ Al login, A riceve il \textit{Ticket Granting Ticket} (TGT) da AS in modo da pot
   \centering
   \includegraphics[width=0.4\textwidth]{img/delegation}
 \end{figure}
-Assumendo che un mail server MS, debba salvare le mail di A nel file server FS: MS deve operare come se fosse A.
+Assumendo che un mail server MS, debba salvare le mail di A nel file server FS: MS deve operare come se fosse A. \\
+Il mail server dovrà interagire con il file system e depositare l'email da qualche parte. Per fare ciò, il mail server deve avere i diritti adeguati e tipicamente i diritti di root. 
+Storicamente il mail server è stato uno dei principali obiettivi di attacchi essendo un servizio complicato. \\
+L'idea che cerca di introdurre Kerberos è quella di permettere al mail server di scrivere nel file system ma facendoglielo fare con il minimo di privilegi possibili (\textit{minimum privilege principle}).
+Questo è un principio di cui dobbiamo tener sempre conto: un soggetto possa fare il proprio compito con il minimo privilegio possibile. \\
+Kerberos ha affrontato il problema tramite 2 meccanismi:
+\begin{itemize}
+	\item Proxiable ticket
+	\item Forwardable TGT
+\end{itemize}
 
 \subsubsection{Proxy tickets}
 
@@ -1722,6 +1769,7 @@ Assumendo che un mail server MS, debba salvare le mail di A nel file server FS: 
   \centering
   \includegraphics[width=0.5\textwidth]{img/proxy}
 \end{figure}
+Quello che vuole fare Alice è di delegare il mail server a scrivere nel file system. Per fare ciò Alice chiede il TGT, ma non quello normale. Questo ticket viene chiamato Proxable Ticket.
 Proxiable TGT consente ad A di chiedere al TGS un ticket di servizio $ST_{MS}$ e un ticket proxiable $PT_{FS}$.
 MS potrebbe fare danno soltanto a FS per i limiti specificati nel $PT$. Tuttavia, A deve conoscere il numero di ticket necessari da MS per completare il servizio correttamente.
 
