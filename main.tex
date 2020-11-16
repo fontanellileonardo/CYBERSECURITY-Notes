@@ -354,7 +354,7 @@ $$\forall i  e_i, E(e_i, p*)$$
 Successivamente, per ogni \textit{j}, può calcolare:
 $$y' = D(e_j, c*)$$
 e confrontarlo con gli elementi della tabella precedente: se i due risultati coincidono, allora $(e_i,e_j)$ è la chiave, \\
-Perché questo metodo è più efficiente di quello precedente? Perché la prima operazione richiede di calcolare e memorizzare $2^56$ coppie $(e_i, E(e_i, p*))$
+Perché questo metodo è più efficiente di quello precedente? Perché la prima operazione richiede di calcolare e memorizzare $2^{56}$ coppie $(e_i, E(e_i, p*))$
 e la seconda richiede di effettuare al più $2^{56}$ operazioni di decriptazione; le due complessità, in questo caso, si sommano e non si moltiplicano. Per questo la complessità resta $O(2^{56})$,
 rendendo l'algoritmo non più sicuro di DES. Nel caso di 3DES, questo attacco non è un problema, perché la complessità sarebbe pari a $2^{112}$ e la complessità dello spazio pari a $2^{56}$.
 
@@ -437,12 +437,12 @@ La visione esterna di DES è la seguente:
 	\centering
 	\includegraphics[width=0.5\textwidth]{img/visione-esterna-des.png}
 \end{figure}
-Affinché un cifrario a blocchi sia ideale (perfettamente random), devono essere possibili un numero di permutazioni pari a $2^n!=2^64!$, ma la chiave DES è a soli 56 bit, dunque può dar luogo a sole $2^56$ permutazioni che è minore di $2^64$ richiesto. \\
+Affinché un cifrario a blocchi sia ideale (perfettamente random), devono essere possibili un numero di permutazioni pari a $2^n!=2^{64}!$, ma la chiave DES è a soli 56 bit, dunque può dar luogo a sole $2^{56}$ permutazioni che è minore di $2^{64}$ richiesto. \\
 DES non è dunque un cifrario perfettamente random.
 
 \subparagraph{2 - Visione interna}
 Il cifrario DES ha la seguente struttura interna in fase di cifratura. \\
-Nella decifratura si hanno i medesimi blocchi, solo che le chiavi sono schedulate al contrario: $k_16$ in R1 e $k_15$ in R2.
+Nella decifratura si hanno i medesimi blocchi, solo che le chiavi sono schedulate al contrario: $k_{16}$ in R1 e $k_{15}$ in R2.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.3\textwidth]{img/visione-interna-des.png}
@@ -584,7 +584,6 @@ AES non ha una struttura Feistel.
   \includegraphics[width=0.5\textwidth]{img/aes}
 \end{figure}
 AES consiste di 3 \textit{layers}:
-AES consists of three \textit{layers}:
 \begin{itemize}
 	\item \textbf{Key addition layer}: Una chiave rotonda a 128-bit che è stata derivata dalla chiave principale nello schedule della chiave a cui viene applicato uno XOR allo stato.
 	\item \textbf{Byte substitution layer (S-box)}: Introduce \textit{confusion} trasformando nonlinearmente ogni elemento dello stato utilizzando tabelle lookup.
