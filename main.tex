@@ -340,18 +340,18 @@ Quindi, queste due funzioni devono essere usate in combinazione, concatenate.
 \subsubsection{Data Encryption Standard (DES)}
 DES è deprecato e considerato non più sicuro, per via della chiave che è troppo corta (56 bits). Potremmo pensare di cifrare più volte usando E con chiavi diverse: esiste uno standard che sfrutta questo metodo ed è chiamato 3DES.\\
 L'operazione di cifratura è fatta in questo modo:
-$$3E(e_1, e_2, e_3), p) = E (e_1, D(e_2, E(e_3, p)))$$
+$$3E((e_1, e_2, e_3), p) = E (e_1, D(e_2, E(e_3, p)))$$
 Nel ricevitore basta effettuare l'operazione inversa. Perché si cifra, poi si decifra e poi nuovamente si decifra? 
 Serve per mantenere la compatibilità con lo standard DES (backward compatibility): basta notare che se $e_1 = e_2 = e_3$, il risultato di 3DES è lo stesso di DES usando la chiave $e_{1/2/3}$.
-La complessità dell'attacco dell'avversario, tuttavia, diventa solo $2^{118}$ e non $2^{56-3}$. \\
+La complessità dell'attacco dell'avversario, tuttavia, diventa solo $2^{118}$ e non $2^{56 \cdot 3}$. \\
 Perché non si utilizza una doppia encriptazione invece di 3DES? Perché non è sicura. \\
 Questo perché la complessità dell'attacco resta la stessa di quella di DES. Ad esempio:
 $$E(e_1, E(e_2, p))$$
-L'avversario potrebbe provare ad effettuare un attacco bruteforce sulle chiavi, quindi in tal caso si troverà a generare $2^{56-2}$ chiavi.
+L'avversario potrebbe provare ad effettuare un attacco bruteforce sulle chiavi, quindi in tal caso si troverà a generare $2^{56 \cdot 2}$ chiavi.
 Tuttavia, questo è un approccio abbastanza naive, ne esiste uno più efficiente chiamato \textit{Meet-in-the-middle}: si tratta ancora di un attacco known-plain text, nella quale l'avversario conosce una coppia $(c*, p*)$. \\
 L'avversario può calcolarsi una tabella composta da:
 $$\forall i  e_i, E(e_i, p*)$$
-Successivamente, per ogni \textit{j}, può calcolare:
+Successivamente, per ogni $j$, può calcolare:
 $$y' = D(e_j, c*)$$
 e confrontarlo con gli elementi della tabella precedente: se i due risultati coincidono, allora $(e_i,e_j)$ è la chiave, \\
 Perché questo metodo è più efficiente di quello precedente? Perché la prima operazione richiede di calcolare e memorizzare $2^{56}$ coppie $(e_i, E(e_i, p*))$
@@ -848,7 +848,7 @@ Utilizza le hash functions. L'implementazione può essere la seguente:
 \end{figure}
 Questo schema di realizzazione è insicuro, in quanto è facile ottenere collisioni. \\
 Si può dimostrare con un caso: supponendo di avere una coppia $(m,t)$ tale che $t = S(k,m)$. \\
-Possiamo forgiare l'HMAC firmando un messaggio: $m^0 = m||padding||$
+Possiamo forgiare l'HMAC firmando un messaggio: $m^0 = m||padding||w$
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.5\textwidth]{img/hmac2.png}
@@ -1132,7 +1132,7 @@ L'operazione logaritmica deve essere difficile e invece necessita di una comples
 Se ad esempio prendiamo $n=512$:
 \begin{itemize}
 	\item L'esponenziale richiede 1024 operazioni.
-	\item L'operazione logaritmica invece ne richiede $2^256$ che equivalgono a $10^77$ operazioni.
+	\item L'operazione logaritmica invece ne richiede $2^{256}$ che equivalgono a $10^{77}$ operazioni.
 \end{itemize}
 A seconda della dimensione della chiave, si necessita di più o meno bit per rappresentare $p$.
 \begin{figure}[H]
